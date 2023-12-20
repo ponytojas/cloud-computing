@@ -1,0 +1,21 @@
+CREATE TABLE IF NOT EXISTS "users" (
+    user_id SERIAL PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS "auth" (
+    auth_id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES "users"(user_id),
+    password_hash CHAR(60) NOT NULL,
+    last_login TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS "stocks" (
+    stock_id TEXT PRIMARY KEY,
+    product TEXT NOT NULL,
+    stock INTEGER NOT NULL,
+    price NUMERIC(10, 2)
+);
