@@ -17,7 +17,7 @@ func init() {
 }
 
 func SetupSubscribers(nc *nats.Conn) {
-	nc.Subscribe("health", func(m *nats.Msg) {
+	nc.Subscribe("auth.health", func(m *nats.Msg) {
 		log.Info("Health check")
 		nc.Publish(m.Reply, []byte("OK"))
 	})
@@ -25,8 +25,8 @@ func SetupSubscribers(nc *nats.Conn) {
 	nc.Subscribe("register", func(m *nats.Msg) {
 		response, err := nc.Request("database.users.create", m.Data, 1000*time.Millisecond)
 		if err != nil {
-			log.Error("Error al crear el usuario:", err)
-			nc.Publish(m.Reply, []byte("Error al crear el usuario"))
+			log.Error("Error creating user:", err)
+			nc.Publish(m.Reply, []byte("Error creating user"))
 			return
 		}
 
@@ -34,7 +34,7 @@ func SetupSubscribers(nc *nats.Conn) {
 			nc.Publish(m.Reply, []byte("OK"))
 		} else {
 			log.Error("ERROR:", string(response.Data))
-			nc.Publish(m.Reply, []byte("Error al crear el usuario"))
+			nc.Publish(m.Reply, []byte("Error creating user"))
 		}
 	})
 
@@ -42,12 +42,12 @@ func SetupSubscribers(nc *nats.Conn) {
 		response, err := nc.Request("database.users.login", m.Data, 1000*time.Millisecond)
 		if err != nil {
 			log.Error("Error al iniciar sesión:", err)
-			nc.Publish(m.Reply, []byte("Error al iniciar sesión"))
+			nc.Publish(m.Reply, []byte("Error at login"))
 			return
 		}
 
 		if string(response.Data) == "ERROR" {
-			nc.Publish(m.Reply, []byte("Error al iniciar sesión"))
+			nc.Publish(m.Reply, []byte("Error at login"))
 			return
 		} else {
 			log.Debug("Login correcto")
@@ -56,15 +56,15 @@ func SetupSubscribers(nc *nats.Conn) {
 		var usercheck token.AuthCheck
 		err = json.Unmarshal(response.Data, &usercheck)
 		if err != nil {
-			log.Error("Error al iniciar sesión:", err)
-			nc.Publish(m.Reply, []byte("Error al iniciar sesión"))
+			log.Error("Error at login:", err)
+			nc.Publish(m.Reply, []byte("Error at login"))
 			return
 		}
 
 		token, err := token.CreateToken(usercheck)
 		if err != nil {
 			log.Error("Error al crear el token:", err)
-			nc.Publish(m.Reply, []byte("Error al iniciar sesión"))
+			nc.Publish(m.Reply, []byte("Error at login"))
 			return
 		}
 

@@ -210,6 +210,25 @@ func CreateProduct(db *sql.DB, product Product) (int, error) {
 	return productID, nil
 }
 
+func GetProduct(db *sql.DB, productID int) (Product, error) {
+	var product Product
+	err := db.QueryRow(`SELECT * FROM "product" WHERE product_id=$1`, productID).Scan(&product.ProductID, &product.Name, &product.Pricing, &product.Description)
+	if err != nil {
+		return Product{}, err
+	}
+
+	return product, nil
+}
+
+func RemoveProduct(db *sql.DB, productID int) error {
+	_, err := db.Exec(`DELETE FROM "product" WHERE product_id=$1`, productID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func AddProductStock(db *sql.DB, productID int, quantity int) (int, error) {
 	var productStockID int
 	createdAt := time.Now()
@@ -222,6 +241,39 @@ func AddProductStock(db *sql.DB, productID int, quantity int) (int, error) {
 	return productStockID, nil
 }
 
+func UpdateProductStock(db *sql.DB, productID int, newQuantity int) error {
+	_, err := db.Exec(`UPDATE "product_stock" SET quantity=$1 WHERE product_id=$2`, newQuantity, productID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func UpsertProductStock(db *sql.DB, productID int, quantity int) error {
+	var productStockID int
+	err := db.QueryRow(`SELECT product_stock_id FROM "product_stock" WHERE product_id=$1`, productID).Scan(&productStockID)
+	if err != nil {
+		// If the product stock doesn't exist, create it
+		if err == sql.ErrNoRows {
+			_, err := AddProductStock(db, productID, quantity)
+			if err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
+	} else {
+		// If the product stock exists, update it
+		err := UpdateProductStock(db, productID, quantity)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func GetProductStock(db *sql.DB, productID int) (int, error) {
 	var quantity int
 	err := db.QueryRow(`SELECT quantity FROM "product_stock" WHERE product_id=$1`, productID).Scan(&quantity)
@@ -232,11 +284,62 @@ func GetProductStock(db *sql.DB, productID int) (int, error) {
 	return quantity, nil
 }
 
-func UpdateProductStock(db *sql.DB, productID int, newQuantity int) error {
-	_, err := db.Exec(`UPDATE "product_stock" SET quantity=$1 WHERE product_id=$2`, newQuantity, productID)
+func GetAllProductStock(db *sql.DB) ([]ProductStock, error) {
+	var productStocks []ProductStock
+	rows, err := db.Query(`SELECT * FROM "product_stock"`)
 	if err != nil {
-		return err
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var productStock ProductStock
+		err := rows.Scan(&productStock.ProductStockID, &productStock.ProductID, &productStock.Quantity)
+		if err != nil {
+			return nil, err
+		}
+		productStocks = append(productStocks, productStock)
 	}
 
-	return nil
+	return productStocks, nil
+}
+
+func GetAllProducts(db *sql.DB) ([]Product, error) {
+	var products []Product
+	rows, err := db.Query(`SELECT * FROM "product"`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var product Product
+		err := rows.Scan(&product.ProductID, &product.Name, &product.Pricing, &product.Description)
+		if err != nil {
+			return nil, err
+		}
+		products = append(products, product)
+	}
+
+	return products, nil
+}
+
+func GetAllProductsWithStock(db *sql.DB) ([]Product, error) {
+	var products []Product
+	rows, err := db.Query(`SELECT * FROM "product INNER JOIN product_stock ON product.product_id = product_stock.product_id"`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var product Product
+		err := rows.Scan(&product.ProductID, &product.Name, &product.Pricing, &product.Description)
+		if err != nil {
+			return nil, err
+		}
+		products = append(products, product)
+	}
+
+	return products, nil
 }
