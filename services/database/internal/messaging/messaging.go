@@ -4,11 +4,11 @@ import (
 	"database/internal/database"
 	"database/internal/logger"
 	"database/sql"
-	"encoding/json"
+	"net/http"
+	"os"
 	"strconv"
-	"strings"
 
-	"github.com/nats-io/nats.go"
+	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )
 
@@ -18,170 +18,162 @@ func init() {
 	log = logger.GetLogger()
 }
 
-func SetupSubscribers(nc *nats.Conn, db *sql.DB) {
-	nc.Subscribe("database.health", func(m *nats.Msg) {
-		log.Info("Health check")
-		nc.Publish(m.Reply, []byte("OK"))
-	})
+func SetupHttp(db *sql.DB) {
+	gin.ForceConsoleColor()
+	if os.Getenv("DEBUG") == "true" {
+		gin.SetMode(gin.DebugMode)
+	} else {
+		gin.SetMode(gin.ReleaseMode)
+	}
 
-	nc.Subscribe("database.users.create", func(m *nats.Msg) {
-		var user database.User
-		err := json.Unmarshal(m.Data, &user)
-		if err != nil {
-			log.Error("Error on json user data:", err)
-			nc.Publish(m.Reply, []byte("ERROR 1000"))
-			return
-		}
+	router := gin.Default()
 
-		id, err := database.CreateUser(db, user)
-		if err != nil {
-			log.Error("Error creating user:", err)
-			nc.Publish(m.Reply, []byte("ERROR 1001"))
-			return
-		}
+	router.GET("/database/health", healthCheckHandler)
 
-		log.Debug("User created with ID:", id)
-		nc.Publish(m.Reply, []byte("OK"))
-	})
+	router.POST("/users/create", func(c *gin.Context) { createUserHandler(c, db) })
+	router.POST("/users/login", func(c *gin.Context) { loginUserHandler(c, db) })
 
-	nc.Subscribe("database.users.login", func(m *nats.Msg) {
-		var user database.User
-		err := json.Unmarshal(m.Data, &user)
-		if err != nil {
-			log.Error("Error on json user data:", err)
-			nc.Publish(m.Reply, []byte("ERROR 1002"))
-			return
-		}
+	router.POST("/products/create", func(c *gin.Context) { createProductHandler(c, db) })
+	router.GET("/products/all", func(c *gin.Context) { getAllProductsHandler(c, db) })
+	router.GET("/products/:id", func(c *gin.Context) { getProductHandler(c, db) })
+	router.POST("/products/:id/stock", func(c *gin.Context) { setProductStockHandler(c, db) })
+	router.DELETE("/products/:id", func(c *gin.Context) { removeProductHandler(c, db) })
 
-		usercheck, err := database.LoginUser(db, user)
-		if err != nil {
-			log.Error("Error on user login:", err)
-			nc.Publish(m.Reply, []byte("ERROR 1003"))
-			return
-		}
+	port := os.Getenv("HTTP_PORT")
 
-		usercheckJSON, err := json.Marshal(usercheck)
-		if err != nil {
-			log.Error("Error on json encoding:", err)
-			nc.Publish(m.Reply, []byte("ERROR 1004"))
-			return
-		}
+	http.ListenAndServe(":"+port, router)
+}
 
-		log.Debug("Success login:", usercheck)
-		nc.Publish(m.Reply, usercheckJSON)
-	})
+func healthCheckHandler(c *gin.Context) {
+	c.String(200, "OK")
+}
 
-	nc.Subscribe("database.product.create", func(m *nats.Msg) {
-		var product database.Product
-		err := json.Unmarshal(m.Data, &product)
-		if err != nil {
-			log.Error("Error on json product data:", err)
-			nc.Publish(m.Reply, []byte("ERROR 2001"))
-			return
-		}
+func createUserHandler(c *gin.Context, db *sql.DB) {
+	var user database.User
+	err := c.ShouldBindJSON(&user)
+	if err != nil {
+		log.Error("Error on json user data:", err)
+		c.String(http.StatusBadRequest, "ERROR 1000")
+		return
+	}
 
-		productId, err := database.CreateProduct(db, product)
-		if err != nil {
-			log.Error("Error on product create:", err)
-			nc.Publish(m.Reply, []byte("ERROR 2002"))
-			return
-		}
+	id, err := database.CreateUser(db, user)
+	if err != nil {
+		log.Error("Error creating user:", err)
+		c.String(http.StatusInternalServerError, "ERROR 1001")
+		return
+	}
 
-		productIdJSON, err := json.Marshal(productId)
-		if err != nil {
-			log.Error("Error on json encoding:", err)
-			nc.Publish(m.Reply, []byte("ERROR 2003"))
-			return
-		}
+	log.Debug("User created with ID:", id)
+	c.String(http.StatusOK, "OK")
+}
 
-		log.Debug("Success product create:", productId)
-		nc.Publish(m.Reply, productIdJSON)
-	})
+func loginUserHandler(c *gin.Context, db *sql.DB) {
+	var user database.User
+	err := c.ShouldBindJSON(&user)
+	if err != nil {
+		log.Error("Error on json user data:", err)
+		c.String(http.StatusBadRequest, "ERROR 1000")
+		return
+	}
 
-	nc.Subscribe("database.product.get.all", func(m *nats.Msg) {
-		productData, err := database.GetAllProductsWithStock(db)
-		if err != nil {
-			log.Error("Error on product get:", err)
-			nc.Publish(m.Reply, []byte("ERROR 2004"))
-			return
-		}
+	usercheck, err := database.LoginUser(db, user)
+	if err != nil {
+		log.Error("Error on user login:", err)
+		c.String(http.StatusInternalServerError, "ERROR 1003")
+		return
+	}
 
-		productDataJSON, err := json.Marshal(productData)
-		if err != nil {
-			log.Error("Error on json encoding:", err)
-			nc.Publish(m.Reply, []byte("ERROR 2005"))
-			return
-		}
+	log.Debug("Success login:", usercheck)
+	c.JSON(http.StatusOK, usercheck)
+}
 
-		log.Debug("Success product get:", productData)
-		nc.Publish(m.Reply, productDataJSON)
-	})
+func createProductHandler(c *gin.Context, db *sql.DB) {
+	var product database.Product
+	err := c.ShouldBindJSON(&product)
+	if err != nil {
+		log.Error("Error on json product data:", err)
+		c.String(http.StatusBadRequest, "ERROR 2000")
+		return
+	}
 
-	nc.Subscribe("database.product.get.*", func(m *nats.Msg) {
-		parts := strings.Split(m.Subject, ".")
-		numberPart := parts[len(parts)-1]
-		productId, err := strconv.Atoi(numberPart)
-		if err != nil {
-			log.Error("Error al convertir '%s' a número: %v", numberPart, err)
-			nc.Publish(m.Reply, []byte("ERROR 2006"))
-			return
-		}
+	id, err := database.CreateProduct(db, product)
+	if err != nil {
+		log.Error("Error on product create:", err)
+		c.String(http.StatusInternalServerError, "ERROR 2001")
+		return
+	}
 
-		productData, err := database.GetProduct(db, productId)
-		if err != nil {
-			log.Error("Error on productId get:", err)
-			nc.Publish(m.Reply, []byte("ERROR 2007"))
-			return
-		}
+	log.Debug("Success product create:", id)
+	c.JSON(http.StatusOK, id)
+}
 
-		productDataJSON, err := json.Marshal(productData)
-		if err != nil {
-			log.Error("Error on json encoding:", err)
-			nc.Publish(m.Reply, []byte("ERROR 2008"))
-			return
-		}
+func getAllProductsHandler(c *gin.Context, db *sql.DB) {
+	productData, err := database.GetAllProductsWithStock(db)
+	if err != nil {
+		log.Error("Error on product get:", err)
+		c.String(http.StatusInternalServerError, "ERROR 2004")
+		return
+	}
 
-		log.Debug("Success productId get:", productData)
-		nc.Publish(m.Reply, productDataJSON)
-	})
+	log.Debug("Success product get:", productData)
+	c.JSON(http.StatusOK, productData)
+}
 
-	nc.Subscribe("database.product.set.stock", func(m *nats.Msg) {
-		var productStock database.ProductStock
-		err := json.Unmarshal(m.Data, &productStock)
-		if err != nil {
-			log.Error("Error on json productStock data:", err)
-			nc.Publish(m.Reply, []byte("ERROR 2009"))
-			return
-		}
+func getProductHandler(c *gin.Context, db *sql.DB) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		log.Error("Error casting'%s' to number: %v", c.Param("id"), err)
+		c.String(http.StatusBadRequest, "ERROR 2005")
+		return
+	}
 
-		err = database.UpsertProductStock(db, productStock.ProductID, productStock.Quantity)
-		if err != nil {
-			log.Error("Error on productStock set:", err)
-			nc.Publish(m.Reply, []byte("ERROR 2010"))
-			return
-		}
+	productData, err := database.GetProduct(db, id)
+	if err != nil {
+		log.Error("Error on product get:", err)
+		c.String(http.StatusInternalServerError, "ERROR 2006")
+		return
+	}
 
-		log.Debug("Success productStock set:", productStock)
-		nc.Publish(m.Reply, []byte("OK"))
-	})
+	log.Debug("Success product get:", productData)
+	c.JSON(http.StatusOK, productData)
+}
 
-	nc.Subscribe("database.product.remove", func(m *nats.Msg) {
-		var product database.Product
-		err := json.Unmarshal(m.Data, &product)
-		if err != nil {
-			log.Error("Error on json product data:", err)
-			nc.Publish(m.Reply, []byte("ERROR 2011"))
-			return
-		}
+func setProductStockHandler(c *gin.Context, db *sql.DB) {
+	var productStock database.ProductStock
+	err := c.ShouldBindJSON(&productStock)
+	if err != nil {
+		log.Error("Error on json productStock data:", err)
+		c.String(http.StatusBadRequest, "ERROR 2007")
+		return
+	}
 
-		err = database.RemoveProduct(db, product.ProductID)
-		if err != nil {
-			log.Error("Error on product delete:", err)
-			nc.Publish(m.Reply, []byte("ERROR 2012"))
-			return
-		}
+	err = database.UpsertProductStock(db, productStock.ProductID, productStock.Quantity)
+	if err != nil {
+		log.Error("Error on productStock set:", err)
+		c.String(http.StatusInternalServerError, "ERROR 2008")
+		return
+	}
 
-		log.Debug("Success product delete:", product)
-		nc.Publish(m.Reply, []byte("OK"))
-	})
+	log.Debug("Success productStock set:", productStock)
+	c.String(http.StatusOK, "OK")
+}
+
+func removeProductHandler(c *gin.Context, db *sql.DB) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		log.Error("Error casting'%s' to number: %v", c.Param("id"), err)
+		c.String(http.StatusBadRequest, "ERROR 2009")
+		return
+	}
+
+	err = database.RemoveProduct(db, id)
+	if err != nil {
+		log.Error("Error on product delete:", err)
+		c.String(http.StatusInternalServerError, "ERROR 2010")
+		return
+	}
+
+	log.Debug("Success product delete:", id)
+	c.String(http.StatusOK, "OK")
 }

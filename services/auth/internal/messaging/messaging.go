@@ -4,8 +4,10 @@ import (
 	"auth/internal/logger"
 	"auth/internal/token"
 	"encoding/json"
+	"net/http"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/nats-io/nats.go"
 	"go.uber.org/zap"
 )
@@ -16,12 +18,26 @@ func init() {
 	log = logger.GetLogger()
 }
 
-func SetupSubscribers(nc *nats.Conn) {
-	nc.Subscribe("auth.health", func(m *nats.Msg) {
-		log.Info("Health check")
-		nc.Publish(m.Reply, []byte("OK"))
-	})
+func SetupHTTPServer() {
+	router := gin.Default()
 
+	// Definiendo endpoints
+	router.POST("/register", handleRegister)
+	router.POST("/login", handleLogin)
+	router.GET("/health", handleHealthCheck)
+
+	// Iniciar el servidor en un puerto específico
+	router.Run(":8080")
+}
+
+func handleHealthCheck(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{"status": "OK"})
+}
+
+func handleRegister(c *gin.Context) {
+}
+
+func SetupSubscribers(nc *nats.Conn) {
 	nc.Subscribe("register", func(m *nats.Msg) {
 		response, err := nc.Request("database.users.create", m.Data, 1000*time.Millisecond)
 		if err != nil {

@@ -4,16 +4,14 @@ import (
 	"database/internal/database"
 	"database/internal/logger"
 	"database/internal/messaging"
-	"os"
 
 	"github.com/joho/godotenv"
-	"github.com/nats-io/nats.go"
 	"go.uber.org/zap"
 )
 
 var log *zap.SugaredLogger
 
-func init() {
+func Init() {
 	log = logger.GetLogger()
 }
 
@@ -28,13 +26,7 @@ func main() {
 	}
 	defer db.Close()
 
-	natsConn, err := nats.Connect(os.Getenv("NATS_URL"))
-	if err != nil {
-		log.Fatal("Error connecting to NATS")
-	}
-	defer natsConn.Close()
-
-	messaging.SetupSubscribers(natsConn, db)
+	messaging.SetupHttp(db)
 
 	log.Infof("Database service started")
 	select {}
