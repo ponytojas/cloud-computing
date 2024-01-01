@@ -19,12 +19,9 @@ var redisClient *redis.Client
 
 var log *zap.SugaredLogger
 
-func init() {
+func Init() {
 	log = logger.GetLogger()
-
-	if err := godotenv.Load(); err != nil {
-		log.Fatal("No .env file found")
-	}
+	godotenv.Load()
 
 	redisHost := os.Getenv("REDIS_HOST")
 	redisPort := os.Getenv("REDIS_PORT")
@@ -35,10 +32,6 @@ func init() {
 }
 
 func main() {
-	if err := godotenv.Load(); err != nil {
-		log.Fatal("Error loading .env file")
-	}
-
 	natsConn, err := nats.Connect(os.Getenv("NATS_URL"))
 	if err != nil {
 		log.Fatal("Error connecting to NATS")
@@ -48,7 +41,8 @@ func main() {
 	token.Init(redisClient)
 
 	messaging.SetupSubscribers(natsConn)
+	messaging.SetupHTTPServer()
 
-	log.Infof("Database service started")
+	log.Infof("Auth service started on port %s", os.Getenv("HTTP_PORT"))
 	select {}
 }

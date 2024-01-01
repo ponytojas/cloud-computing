@@ -10,8 +10,10 @@ import (
 var sugar *zap.SugaredLogger
 
 func init() {
-	if err := godotenv.Load(); err != nil {
-		sugar.Fatal("Error loading .env file")
+	if os.Getenv("VSCODE_DEBUG") != "true" {
+		if err := godotenv.Load(); err != nil {
+			sugar.Fatal("Error loading .env file")
+		}
 	}
 
 	if os.Getenv("DEBUG") == "true" {

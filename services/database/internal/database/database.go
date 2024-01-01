@@ -2,6 +2,7 @@ package database
 
 import (
 	"database/internal/logger"
+	"database/shared"
 	"database/sql"
 	"fmt"
 	"os"
@@ -13,12 +14,6 @@ import (
 	_ "github.com/lib/pq"
 	"golang.org/x/crypto/bcrypt"
 )
-
-type User struct {
-	Username string
-	Email    string
-	Password string
-}
 
 type AuthCheck struct {
 	UserId   int
@@ -85,9 +80,10 @@ func checkDatabases(db *sql.DB) error {
 }
 
 func Init() (*sql.DB, error) {
-	err := godotenv.Load()
-	if err != nil {
-		log.Error("Error loading .env file, falling back to environment variables")
+	if os.Getenv("VSCODE_DEBUG") != "true" {
+		if err := godotenv.Load(); err != nil {
+			log.Fatal("Error loading .env file")
+		}
 	}
 
 	// Get database configuration from environment variables
@@ -119,7 +115,7 @@ func Init() (*sql.DB, error) {
 	return db, nil
 }
 
-func CreateUser(db *sql.DB, user User) (int, error) {
+func CreateUser(db *sql.DB, user shared.User) (int, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return 0, err
@@ -142,7 +138,7 @@ func CreateUser(db *sql.DB, user User) (int, error) {
 	return userID, nil
 }
 
-func LoginUser(db *sql.DB, user User) (AuthCheck, error) {
+func LoginUser(db *sql.DB, user shared.User) (AuthCheck, error) {
 	var userID int
 	var username string
 	var email string

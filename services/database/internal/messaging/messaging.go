@@ -3,6 +3,7 @@ package messaging
 import (
 	"database/internal/database"
 	"database/internal/logger"
+	"database/shared"
 	"database/sql"
 	"net/http"
 	"os"
@@ -49,7 +50,7 @@ func healthCheckHandler(c *gin.Context) {
 }
 
 func createUserHandler(c *gin.Context, db *sql.DB) {
-	var user database.User
+	var user shared.User
 	err := c.ShouldBindJSON(&user)
 	if err != nil {
 		log.Error("Error on json user data:", err)
@@ -69,7 +70,7 @@ func createUserHandler(c *gin.Context, db *sql.DB) {
 }
 
 func loginUserHandler(c *gin.Context, db *sql.DB) {
-	var user database.User
+	var user shared.User
 	err := c.ShouldBindJSON(&user)
 	if err != nil {
 		log.Error("Error on json user data:", err)

@@ -5,19 +5,20 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Launch file",
-            "type": "go",
-            "request": "launch",
-            "mode": "debug",
-            "program": "${file}"
-        },
-
-        {
             "name": "Launch Package",
             "type": "go",
             "request": "launch",
             "mode": "auto",
-            "program": "${fileDirname}"
+            "program": "${fileDirname}",
+            "env": {
+                "DB_SERVICE_URL":"http://localhost:5555",
+                "HTTP_PORT":"5554",
+                "JWT_SECRET":"JunoMolaAsiQueMasPlachanito",
+                "REDIS_HOST":"localhost",
+                "REDIS_PORT":"6379",
+                "DEBUG":"true",
+                "VSCODE_DEBUG":"true"
+            },
         }
     ]
 }
