@@ -1,22 +1,14 @@
 package logger
 
 import (
-	"log"
 	"os"
 
-	"github.com/joho/godotenv"
 	"go.uber.org/zap"
 )
 
 var sugar *zap.SugaredLogger
 
 func init() {
-	if os.Getenv("VSCODE_DEBUG") != "true" {
-		if err := godotenv.Load(); err != nil {
-			log.Fatal("Error loading .env file")
-		}
-	}
-
 	if os.Getenv("DEBUG") == "true" {
 		logger, _ := zap.NewDevelopment()
 		defer logger.Sync()

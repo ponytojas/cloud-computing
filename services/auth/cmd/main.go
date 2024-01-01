@@ -19,9 +19,9 @@ var redisClient *redis.Client
 
 var log *zap.SugaredLogger
 
-func Init() {
-	log = logger.GetLogger()
+func init() {
 	godotenv.Load()
+	log = logger.GetLogger()
 
 	redisHost := os.Getenv("REDIS_HOST")
 	redisPort := os.Getenv("REDIS_PORT")
