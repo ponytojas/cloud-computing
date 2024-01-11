@@ -44,19 +44,6 @@ type Invoice struct {
 	CreatedAt   time.Time
 }
 
-type Product struct {
-	ProductID   int
-	Name        string
-	Pricing     float64
-	Description string
-}
-
-type ProductStock struct {
-	ProductStockID int
-	ProductID      int
-	Quantity       int
-}
-
 var log *zap.SugaredLogger
 
 func init() {
@@ -194,7 +181,7 @@ func CreateInvoice(db *sql.DB, userID int, purchaseID int, totalAmount float64) 
 	return invoiceID, nil
 }
 
-func CreateProduct(db *sql.DB, product Product) (int, error) {
+func CreateProduct(db *sql.DB, product shared.Product) (int, error) {
 	var productID int
 	createdAt := time.Now()
 	err := db.QueryRow(`INSERT INTO "product" (name, pricing, description, created_at) VALUES ($1, $2, $3, $4) RETURNING product_id`,
@@ -206,11 +193,11 @@ func CreateProduct(db *sql.DB, product Product) (int, error) {
 	return productID, nil
 }
 
-func GetProduct(db *sql.DB, productID int) (Product, error) {
-	var product Product
-	err := db.QueryRow(`SELECT * FROM "product" WHERE product_id=$1`, productID).Scan(&product.ProductID, &product.Name, &product.Pricing, &product.Description)
+func GetProduct(db *sql.DB, productID int) (shared.Product, error) {
+	var product shared.Product
+	err := db.QueryRow(`SELECT product.product_id, product.name, product.pricing, product.description FROM "product" WHERE product_id=$1`, productID).Scan(&product.ProductID, &product.Name, &product.Pricing, &product.Description)
 	if err != nil {
-		return Product{}, err
+		return shared.Product{}, err
 	}
 
 	return product, nil
@@ -227,6 +214,7 @@ func RemoveProduct(db *sql.DB, productID int) error {
 
 func AddProductStock(db *sql.DB, productID int, quantity int) (int, error) {
 	var productStockID int
+	log.Info("Adding product stock: " + string(productID) + " " + string(quantity))
 	createdAt := time.Now()
 	err := db.QueryRow(`INSERT INTO "product_stock" (product_id, quantity, created_at) VALUES ($1, $2, $3) RETURNING product_stock_id`,
 		productID, quantity, createdAt).Scan(&productStockID)
@@ -270,26 +258,26 @@ func UpsertProductStock(db *sql.DB, productID int, quantity int) error {
 	return nil
 }
 
-func GetProductStock(db *sql.DB, productID int) (int, error) {
-	var quantity int
-	err := db.QueryRow(`SELECT quantity FROM "product_stock" WHERE product_id=$1`, productID).Scan(&quantity)
+func GetProductStock(db *sql.DB, productID int) (shared.ProductStock, error) {
+	var result shared.ProductStock
+	err := db.QueryRow(`SELECT product_stock.product_stock_id, product_stock.product_id, product_stock.quantity FROM "product_stock" WHERE product_id=$1`, productID).Scan(&result.ProductID, &result.ProductID, &result.Quantity)
 	if err != nil {
-		return 0, err
+		return shared.ProductStock{}, err
 	}
 
-	return quantity, nil
+	return result, nil
 }
 
-func GetAllProductStock(db *sql.DB) ([]ProductStock, error) {
-	var productStocks []ProductStock
-	rows, err := db.Query(`SELECT * FROM "product_stock"`)
+func GetAllProductStock(db *sql.DB) ([]shared.ProductStock, error) {
+	var productStocks []shared.ProductStock
+	rows, err := db.Query(`SELECT product_stock.product_stock_id, product_stock.product_id, product_stock.quantity FROM "product_stock"`)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
 	for rows.Next() {
-		var productStock ProductStock
+		var productStock shared.ProductStock
 		err := rows.Scan(&productStock.ProductStockID, &productStock.ProductID, &productStock.Quantity)
 		if err != nil {
 			return nil, err
@@ -300,16 +288,16 @@ func GetAllProductStock(db *sql.DB) ([]ProductStock, error) {
 	return productStocks, nil
 }
 
-func GetAllProducts(db *sql.DB) ([]Product, error) {
-	var products []Product
-	rows, err := db.Query(`SELECT * FROM "product"`)
+func GetAllProducts(db *sql.DB) ([]shared.Product, error) {
+	var products []shared.Product
+	rows, err := db.Query(`SELECT product.product_id, product.name, product.pricing, product.description FROM "product"`)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
 	for rows.Next() {
-		var product Product
+		var product shared.Product
 		err := rows.Scan(&product.ProductID, &product.Name, &product.Pricing, &product.Description)
 		if err != nil {
 			return nil, err
@@ -320,16 +308,16 @@ func GetAllProducts(db *sql.DB) ([]Product, error) {
 	return products, nil
 }
 
-func GetAllProductsWithStock(db *sql.DB) ([]Product, error) {
-	var products []Product
-	rows, err := db.Query(`SELECT * FROM "product INNER JOIN product_stock ON product.product_id = product_stock.product_id"`)
+func GetAllProductsWithStock(db *sql.DB) ([]shared.Product, error) {
+	var products []shared.Product
+	rows, err := db.Query(`SELECT * FROM product INNER JOIN product_stock ON product.product_id = product_stock.product_id`)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
 	for rows.Next() {
-		var product Product
+		var product shared.Product
 		err := rows.Scan(&product.ProductID, &product.Name, &product.Pricing, &product.Description)
 		if err != nil {
 			return nil, err

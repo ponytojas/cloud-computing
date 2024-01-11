@@ -10,12 +10,14 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	"go.uber.org/zap"
 )
 
 var log *zap.SugaredLogger
 
 func init() {
+	godotenv.Load()
 	log = logger.GetLogger()
 }
 
@@ -35,9 +37,11 @@ func SetupHttp(db *sql.DB) {
 	router.POST("/users/login", func(c *gin.Context) { loginUserHandler(c, db) })
 
 	router.POST("/products/create", func(c *gin.Context) { createProductHandler(c, db) })
-	router.GET("/products/all", func(c *gin.Context) { getAllProductsHandler(c, db) })
+	router.GET("/products", func(c *gin.Context) { getAllProductsHandler(c, db) })
 	router.GET("/products/:id", func(c *gin.Context) { getProductHandler(c, db) })
 	router.POST("/products/:id/stock", func(c *gin.Context) { setProductStockHandler(c, db) })
+	router.GET("/products/stock", func(c *gin.Context) { getAllProductStockHandler(c, db) })
+	router.GET("/products/:id/stock/", func(c *gin.Context) { getProductStockHandler(c, db) })
 	router.DELETE("/products/:id", func(c *gin.Context) { removeProductHandler(c, db) })
 
 	port := os.Getenv("HTTP_PORT")
@@ -90,7 +94,7 @@ func loginUserHandler(c *gin.Context, db *sql.DB) {
 }
 
 func createProductHandler(c *gin.Context, db *sql.DB) {
-	var product database.Product
+	var product shared.Product
 	err := c.ShouldBindJSON(&product)
 	if err != nil {
 		log.Error("Error on json product data:", err)
@@ -106,11 +110,11 @@ func createProductHandler(c *gin.Context, db *sql.DB) {
 	}
 
 	log.Debug("Success product create:", id)
-	c.JSON(http.StatusOK, id)
+	c.JSON(http.StatusOK, gin.H{"id": id})
 }
 
 func getAllProductsHandler(c *gin.Context, db *sql.DB) {
-	productData, err := database.GetAllProductsWithStock(db)
+	productData, err := database.GetAllProducts(db)
 	if err != nil {
 		log.Error("Error on product get:", err)
 		c.String(http.StatusInternalServerError, "ERROR 2004")
@@ -140,8 +144,27 @@ func getProductHandler(c *gin.Context, db *sql.DB) {
 	c.JSON(http.StatusOK, productData)
 }
 
+func getProductStockHandler(c *gin.Context, db *sql.DB) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		log.Error("Error casting'%s' to number: %v", c.Param("id"), err)
+		c.String(http.StatusBadRequest, "ERROR 2005")
+		return
+	}
+
+	productStock, err := database.GetProductStock(db, id)
+	if err != nil {
+		log.Error("Error on productStock get:", err)
+		c.String(http.StatusInternalServerError, "ERROR 2006")
+		return
+	}
+
+	log.Debug("Success productStock get:", productStock)
+	c.JSON(http.StatusOK, productStock)
+}
+
 func setProductStockHandler(c *gin.Context, db *sql.DB) {
-	var productStock database.ProductStock
+	var productStock shared.ProductStock
 	err := c.ShouldBindJSON(&productStock)
 	if err != nil {
 		log.Error("Error on json productStock data:", err)
@@ -177,4 +200,16 @@ func removeProductHandler(c *gin.Context, db *sql.DB) {
 
 	log.Debug("Success product delete:", id)
 	c.String(http.StatusOK, "OK")
+}
+
+func getAllProductStockHandler(c *gin.Context, db *sql.DB) {
+	productStocks, err := database.GetAllProductStock(db)
+	if err != nil {
+		log.Error("Error on productStock get:", err)
+		c.String(http.StatusInternalServerError, "ERROR 2006")
+		return
+	}
+
+	log.Debug("Success productStock get:", productStocks)
+	c.JSON(http.StatusOK, productStocks)
 }

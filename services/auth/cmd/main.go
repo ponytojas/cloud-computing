@@ -10,7 +10,6 @@ import (
 
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
-	"github.com/nats-io/nats.go"
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 )
@@ -32,15 +31,7 @@ func init() {
 }
 
 func main() {
-	natsConn, err := nats.Connect(os.Getenv("NATS_URL"))
-	if err != nil {
-		log.Fatal("Error connecting to NATS")
-	}
-	defer natsConn.Close()
-
 	token.Init(redisClient)
-
-	messaging.SetupSubscribers(natsConn)
 	messaging.SetupHTTPServer()
 
 	log.Infof("Auth service started on port %s", os.Getenv("HTTP_PORT"))

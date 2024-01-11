@@ -8,18 +8,19 @@ import (
 	"encoding/json"
 	"net/http"
 	"os"
-	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/nats-io/nats.go"
+	"github.com/joho/godotenv"
 	"go.uber.org/zap"
 )
 
 var log *zap.SugaredLogger
-var dbUrl string = os.Getenv("DB_SERVICE_URL")
+var dbUrl string
 
 func init() {
+	godotenv.Load()
 	log = logger.GetLogger()
+	dbUrl = os.Getenv("DB_SERVICE_URL")
 }
 
 func SetupHTTPServer() {
@@ -78,42 +79,49 @@ func handleRegister(c *gin.Context) {
 }
 
 func handleLogin(c *gin.Context) {
-}
+	var user shared.User
+	err := c.ShouldBindJSON(&user)
+	if err != nil {
+		log.Error("Error parsing JSON:", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
-func SetupSubscribers(nc *nats.Conn) {
+	requestBody, err := json.Marshal(user)
+	if err != nil {
+		log.Error("Error parsing JSON:", err)
+		return
+	}
 
-	nc.Subscribe("login", func(m *nats.Msg) {
-		response, err := nc.Request("database.users.login", m.Data, 1000*time.Millisecond)
-		if err != nil {
-			log.Error("Error al iniciar sesión:", err)
-			nc.Publish(m.Reply, []byte("Error at login"))
-			return
-		}
+	resp, err := http.Post(dbUrl+"/users/login", "application/json", bytes.NewBuffer(requestBody))
 
-		if string(response.Data) == "ERROR" {
-			nc.Publish(m.Reply, []byte("Error at login"))
-			return
-		} else {
-			log.Debug("Login correcto")
-		}
+	if err != nil {
+		log.Error("Error on user login request:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	defer resp.Body.Close()
 
-		var usercheck token.AuthCheck
-		err = json.Unmarshal(response.Data, &usercheck)
-		if err != nil {
-			log.Error("Error at login:", err)
-			nc.Publish(m.Reply, []byte("Error at login"))
-			return
-		}
+	if resp.StatusCode != http.StatusOK {
+		log.Error("Error on user login request:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 
-		token, err := token.CreateToken(usercheck)
-		if err != nil {
-			log.Error("Error al crear el token:", err)
-			nc.Publish(m.Reply, []byte("Error at login"))
-			return
-		}
+	var usercheck token.AuthCheck
+	err = json.NewDecoder(resp.Body).Decode(&usercheck)
+	if err != nil {
+		log.Error("Error on user login request:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 
-		nc.Publish(m.Reply, []byte(token))
+	token, err := token.CreateToken(usercheck)
+	if err != nil {
+		log.Error("Error on user login request:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 
-	})
-
+	c.JSON(http.StatusOK, gin.H{"token": token})
 }

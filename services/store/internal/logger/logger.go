@@ -10,9 +10,7 @@ import (
 var sugar *zap.SugaredLogger
 
 func init() {
-	if err := godotenv.Load(); err != nil {
-		sugar.Fatal("Error loading .env file")
-	}
+	godotenv.Load()
 
 	if os.Getenv("DEBUG") == "true" {
 		logger, _ := zap.NewDevelopment()
