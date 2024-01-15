@@ -21,9 +21,3 @@ services:
     restart: always
     ports:
       - '6379:6379'
-
-  nats:
-    image: nats:latest
-    restart: always
-    ports:
-      - '4222:4222'

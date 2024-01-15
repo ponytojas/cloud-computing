@@ -6,6 +6,7 @@ import (
 	"auth/shared"
 	"bytes"
 	"encoding/json"
+	"io"
 	"net/http"
 	"os"
 
@@ -18,7 +19,10 @@ var log *zap.SugaredLogger
 var dbUrl string
 
 func init() {
-	godotenv.Load()
+	err := godotenv.Load()
+	if err != nil {
+		return
+	}
 	log = logger.GetLogger()
 	dbUrl = os.Getenv("DB_SERVICE_URL")
 }
@@ -35,11 +39,17 @@ func SetupHTTPServer() {
 
 	router.POST("/register", handleRegister)
 	router.POST("/login", handleLogin)
+	router.POST("/logout", handleLogout)
+	router.POST("/check", token.CheckToken)
 	router.GET("/health", handleHealthCheck)
 
 	port := os.Getenv("HTTP_PORT")
 
-	http.ListenAndServe(":"+port, router)
+	log.Infof("Auth service started on port %s", os.Getenv("HTTP_PORT"))
+	err := http.ListenAndServe(":"+port, router)
+	if err != nil {
+		return
+	}
 }
 
 func handleHealthCheck(c *gin.Context) {
@@ -67,7 +77,12 @@ func handleRegister(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Error("Error closing response body:", err)
+		}
+	}(resp.Body)
 
 	if resp.StatusCode != http.StatusOK {
 		log.Error("Error on user creation request:", err)
@@ -100,7 +115,12 @@ func handleLogin(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Error("Error closing response body:", err)
+		}
+	}(resp.Body)
 
 	if resp.StatusCode != http.StatusOK {
 		log.Error("Error on user login request:", err)
@@ -108,7 +128,7 @@ func handleLogin(c *gin.Context) {
 		return
 	}
 
-	var usercheck token.AuthCheck
+	var usercheck shared.AuthCheck
 	err = json.NewDecoder(resp.Body).Decode(&usercheck)
 	if err != nil {
 		log.Error("Error on user login request:", err)
@@ -116,12 +136,33 @@ func handleLogin(c *gin.Context) {
 		return
 	}
 
-	token, err := token.CreateToken(usercheck)
+	newToken, err := token.CreateToken(usercheck)
 	if err != nil {
 		log.Error("Error on user login request:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"token": token})
+	c.JSON(http.StatusOK, gin.H{"token": newToken})
+}
+
+func handleLogout(c *gin.Context) {
+
+	// Clear token from Redis
+	var tokenString string
+	err := c.ShouldBindJSON(&tokenString)
+	if err != nil {
+		log.Error("Error parsing JSON:", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	err = token.DeleteToken(tokenString)
+	if err != nil {
+		log.Error("Error deleting token:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"status": "OK"})
 }

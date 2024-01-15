@@ -11,3 +11,7 @@ type AuthCheck struct {
 	Username string
 	Email    string
 }
+
+type Token struct {
+	Token string
+}

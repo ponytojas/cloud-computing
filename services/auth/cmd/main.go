@@ -9,7 +9,6 @@ import (
 	"auth/internal/token"
 
 	"github.com/joho/godotenv"
-	_ "github.com/lib/pq"
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 )
@@ -34,6 +33,5 @@ func main() {
 	token.Init(redisClient)
 	messaging.SetupHTTPServer()
 
-	log.Infof("Auth service started on port %s", os.Getenv("HTTP_PORT"))
 	select {}
 }

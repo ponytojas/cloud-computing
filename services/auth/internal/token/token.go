@@ -1,19 +1,16 @@
 package token
 
 import (
+	"auth/shared"
 	"context"
+	"github.com/gin-gonic/gin"
+	"net/http"
 	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/redis/go-redis/v9"
 )
-
-type AuthCheck struct {
-	UserId   int
-	Username string
-	Email    string
-}
 
 var redisClient *redis.Client
 var jwtSecret string
@@ -23,7 +20,7 @@ func Init(rc *redis.Client) {
 	jwtSecret = os.Getenv("JWT_SECRET")
 }
 
-func CreateToken(auth AuthCheck) (string, error) {
+func CreateToken(auth shared.AuthCheck) (string, error) {
 	ctx := context.Background()
 	cachedToken, err := redisClient.Get(ctx, auth.Username).Result()
 	// If there's not already a token in Redis it will return an error.
@@ -49,4 +46,38 @@ func CreateToken(auth AuthCheck) (string, error) {
 	}
 
 	return tokenString, nil
+}
+
+func CheckToken(c *gin.Context) {
+	var tokenString string
+	err := c.ShouldBindJSON(&tokenString)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		return []byte(jwtSecret), nil
+	})
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		c.JSON(http.StatusOK, gin.H{"claims": claims})
+		return
+	}
+
+	c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
+}
+
+func DeleteToken(tokenString string) error {
+	ctx := context.Background()
+	_, err := redisClient.Del(ctx, tokenString).Result()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

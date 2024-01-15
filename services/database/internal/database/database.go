@@ -4,6 +4,7 @@ import (
 	"database/internal/logger"
 	"database/shared"
 	"database/sql"
+	"errors"
 	"fmt"
 	"os"
 	"time"
@@ -214,7 +215,7 @@ func RemoveProduct(db *sql.DB, productID int) error {
 
 func AddProductStock(db *sql.DB, productID int, quantity int) (int, error) {
 	var productStockID int
-	log.Info("Adding product stock: " + string(productID) + " " + string(quantity))
+	log.Info("Adding product stock: " + string(rune(productID)) + " " + string(rune(quantity)))
 	createdAt := time.Now()
 	err := db.QueryRow(`INSERT INTO "product_stock" (product_id, quantity, created_at) VALUES ($1, $2, $3) RETURNING product_stock_id`,
 		productID, quantity, createdAt).Scan(&productStockID)
@@ -238,8 +239,7 @@ func UpsertProductStock(db *sql.DB, productID int, quantity int) error {
 	var productStockID int
 	err := db.QueryRow(`SELECT product_stock_id FROM "product_stock" WHERE product_id=$1`, productID).Scan(&productStockID)
 	if err != nil {
-		// If the product stock doesn't exist, create it
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			_, err := AddProductStock(db, productID, quantity)
 			if err != nil {
 				return err
@@ -274,7 +274,12 @@ func GetAllProductStock(db *sql.DB) ([]shared.ProductStock, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func(rows *sql.Rows) {
+		err := rows.Close()
+		if err != nil {
+			log.Error("Error closing rows:", err)
+		}
+	}(rows)
 
 	for rows.Next() {
 		var productStock shared.ProductStock
@@ -294,7 +299,12 @@ func GetAllProducts(db *sql.DB) ([]shared.Product, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func(rows *sql.Rows) {
+		err := rows.Close()
+		if err != nil {
+			log.Error("Error closing rows:", err)
+		}
+	}(rows)
 
 	for rows.Next() {
 		var product shared.Product
@@ -314,7 +324,12 @@ func GetAllProductsWithStock(db *sql.DB) ([]shared.Product, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func(rows *sql.Rows) {
+		err := rows.Close()
+		if err != nil {
+			log.Error("Error closing rows:", err)
+		}
+	}(rows)
 
 	for rows.Next() {
 		var product shared.Product
