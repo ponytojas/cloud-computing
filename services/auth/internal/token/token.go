@@ -3,10 +3,11 @@ package token
 import (
 	"auth/shared"
 	"context"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/gin-gonic/gin"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/redis/go-redis/v9"
@@ -49,14 +50,14 @@ func CreateToken(auth shared.AuthCheck) (string, error) {
 }
 
 func CheckToken(c *gin.Context) {
-	var tokenString string
+	var tokenString shared.Token
 	err := c.ShouldBindJSON(&tokenString)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.Parse(tokenString.Token, func(token *jwt.Token) (interface{}, error) {
 		return []byte(jwtSecret), nil
 	})
 	if err != nil {
@@ -65,7 +66,7 @@ func CheckToken(c *gin.Context) {
 	}
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		c.JSON(http.StatusOK, gin.H{"claims": claims})
+		c.JSON(http.StatusOK, gin.H{"claims": claims, "valid": true})
 		return
 	}
 

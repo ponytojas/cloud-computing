@@ -16,3 +16,7 @@ type ProductStock struct {
 	ProductID      int
 	Quantity       int
 }
+
+type ProductStockRequest struct {
+	Quantity int
+}

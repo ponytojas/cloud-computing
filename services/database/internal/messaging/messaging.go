@@ -164,12 +164,23 @@ func getProductStockHandler(c *gin.Context, db *sql.DB) {
 }
 
 func setProductStockHandler(c *gin.Context, db *sql.DB) {
-	var productStock shared.ProductStock
-	err := c.ShouldBindJSON(&productStock)
+	var productStockRequest shared.ProductStockRequest
+	err := c.ShouldBindJSON(&productStockRequest)
 	if err != nil {
 		log.Error("Error on json productStock data:", err)
 		c.String(http.StatusBadRequest, "ERROR 2007")
 		return
+	}
+	productId, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		log.Error("Error casting'%s' to number: %v", c.Param("id"), err)
+		c.String(http.StatusBadRequest, "ERROR 2005")
+		return
+	}
+
+	var productStock shared.ProductStock = shared.ProductStock{
+		ProductID: productId,
+		Quantity:  productStockRequest.Quantity,
 	}
 
 	err = database.UpsertProductStock(db, productStock.ProductID, productStock.Quantity)

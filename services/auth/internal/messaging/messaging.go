@@ -19,10 +19,7 @@ var log *zap.SugaredLogger
 var dbUrl string
 
 func init() {
-	err := godotenv.Load()
-	if err != nil {
-		return
-	}
+	godotenv.Load()
 	log = logger.GetLogger()
 	dbUrl = os.Getenv("DB_SERVICE_URL")
 }
@@ -147,17 +144,15 @@ func handleLogin(c *gin.Context) {
 }
 
 func handleLogout(c *gin.Context) {
-
-	// Clear token from Redis
-	var tokenString string
-	err := c.ShouldBindJSON(&tokenString)
+	var t shared.TokenLogout
+	err := c.ShouldBindJSON(&t)
 	if err != nil {
 		log.Error("Error parsing JSON:", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	err = token.DeleteToken(tokenString)
+	err = token.DeleteToken(t.Username)
 	if err != nil {
 		log.Error("Error deleting token:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

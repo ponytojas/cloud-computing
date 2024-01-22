@@ -1,7 +1,37 @@
 version: '3.7'
 services:
+
+  traefik:
+    image: traefik:v2.10.7
+    command:
+      - "--log.level=DEBUG"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "4444:80"
+      - "8080:8080"
+    environment:
+      - "LOG_LEVEL=DEBUG"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - internal
+    logging:
+      options:
+        max-size: 50m
+  whoami:
+    image: "traefik/whoami"
+    container_name: "simple-service"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.whoami.rule=Host(`whoami.localhost`)"
+      - "traefik.http.routers.whoami.entrypoints=web"
+
   postgres:
     image: postgres:latest
+    hostname: postgres
     restart: always
     environment:
       - POSTGRES_USER=postgres
@@ -13,11 +43,127 @@ services:
     ports:
       - '5432:5432'
     volumes:
-      - ./postgres-data:/var/lib/postgresql/data
-      - ./db.sql:/docker-entrypoint-initdb.d/create_tables.sql
+      - postgres_data:/var/lib/postgresql/data
+      - ./DB/db.sql:/docker-entrypoint-initdb.d/create_tables.sql
+    networks:
+      - internal
 
   redis:
-    image: redis/redis-stack-server:latest
+    hostname: redis
+    image: redis:7.2.4-alpine3.19
     restart: always
     ports:
       - '6379:6379'
+    networks:
+      - internal
+
+  db:
+    hostname: db
+    build:
+      context: ../services/database
+      dockerfile: ./Dockerfile
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASS=mysecretpassword
+      - DB_NAME=postgres
+      - DB_SSLMODE=disable
+      - HTTP_PORT=5555
+      - DEBUG=false
+    networks:
+      - internal
+    depends_on:
+      - postgres
+      - redis
+
+  auth:
+    hostname: auth
+    build:
+      context: ../services/auth
+      dockerfile: ./Dockerfile
+    environment:
+      - DB_SERVICE_URL=http://db:5555
+      - REDIS_HOST=redis
+      - JWT_SECRET=JunoMolaAsiQueMasPlachanito
+      - HTTP_PORT=5554
+      - REDIS_PORT=6379
+      - DEBUG=false
+    networks:
+      - internal
+    depends_on:
+      - db
+      - redis
+      - postgres
+
+  store:
+    hostname: store
+    build:
+      context: ../services/store
+      dockerfile: ./Dockerfile
+    environment:
+      - DB_SERVICE_URL=http://db:5555
+      - HTTP_PORT=5551
+      - DEBUG=false
+    networks:
+      - internal
+    depends_on:
+      - db
+      - redis
+      - postgres
+
+  core:
+    hostname: core
+    build:
+      context: ../services/core
+      dockerfile: ./Dockerfile
+    environment:
+      - HTTP_PORT=5550
+      - AUTH_SERVICE_URL=http://auth:5554
+      - STORE_SERVICE_URL=http://store:5551
+      - DEBUG=false
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=internal"
+      - "traefik.http.routers.core.rule=PathPrefix(`/api`)"
+      - "traefik.http.routers.core.entrypoints=web"
+      - "traefik.http.services.core.loadbalancer.server.port=5550"
+      - "traefik.http.middlewares.core-stripprefix.stripprefix.prefixes=/api"
+      - "traefik.http.routers.core.middlewares=core-stripprefix"
+    networks:
+      - internal
+    depends_on:
+      - db
+      - redis
+      - postgres
+      - auth
+      - store
+      - traefik
+
+  portainer:
+    image: portainer/portainer-ce
+
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+
+  gitea:
+    image: gitea/gitea:latest
+    environment:
+      - USER_UID=1000
+      - USER_GID=1000
+    restart: always
+    volumes:
+      - gitea_data:/data
+    ports:
+      - "3000:3000"
+      - "222:22"
+
+volumes:
+  portainer_data:
+  gitea_data:
+  postgres_data:
+
+networks:
+  internal:
+    driver: bridge

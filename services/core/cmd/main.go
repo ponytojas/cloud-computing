@@ -11,10 +11,8 @@ import (
 var log *zap.SugaredLogger
 
 func init() {
-	err := godotenv.Load()
-	if err != nil {
-		return
-	}
+	godotenv.Load()
+
 	log = logger.GetLogger()
 
 }

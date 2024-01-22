@@ -68,13 +68,8 @@ func checkDatabases(db *sql.DB) error {
 }
 
 func Init() (*sql.DB, error) {
-	if os.Getenv("VSCODE_DEBUG") != "true" {
-		if err := godotenv.Load(); err != nil {
-			log.Fatal("Error loading .env file")
-		}
-	}
+	godotenv.Load()
 
-	// Get database configuration from environment variables
 	dbUser := os.Getenv("DB_USER")
 	dbPassword := os.Getenv("DB_PASS")
 	dbHost := os.Getenv("DB_HOST")
@@ -83,24 +78,35 @@ func Init() (*sql.DB, error) {
 	sslMode := os.Getenv("DB_SSLMODE")
 
 	dataSourceName := fmt.Sprintf("user=%s password=%s host=%s port=%s dbname=%s sslmode=%s", dbUser, dbPassword, dbHost, dbPort, dbName, sslMode)
-	db, err := sql.Open("postgres", dataSourceName)
 
-	if err != nil {
-		return nil, err
+	var db *sql.DB
+	var err error
+
+	for i := 0; i < 10; i++ {
+		db, err = sql.Open("postgres", dataSourceName)
+		if err != nil {
+			log.Warn("Error connecting to database: retrying %d/10", i+1)
+			time.Sleep(1 * time.Second)
+			continue
+		}
+
+		if err = db.Ping(); err != nil {
+			log.Warn("Error connecting to database: retrying %d/10", i+1)
+			time.Sleep(1 * time.Second)
+			continue
+		}
+
+		if err := checkDatabases(db); err != nil {
+			log.Warn("Error connecting to database: retrying %d/10", i+1)
+			time.Sleep(1 * time.Second)
+			continue
+		}
+
+		log.Debug("DB connected")
+		return db, nil
 	}
 
-	// Verify connection
-	if err := db.Ping(); err != nil {
-		return nil, err
-	}
-
-	if err := checkDatabases(db); err != nil {
-		return nil, err
-	}
-
-	log.Debug("Connected to database")
-
-	return db, nil
+	return nil, fmt.Errorf("After 10 retries, was not possible to connect to the databse %w", err)
 }
 
 func CreateUser(db *sql.DB, user shared.User) (int, error) {

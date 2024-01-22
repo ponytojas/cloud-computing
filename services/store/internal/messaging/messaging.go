@@ -31,11 +31,11 @@ func SetupHTTPServer() {
 
 	router := gin.Default()
 
+	router.GET("/product", handleProductAllGet)
 	router.POST("/product", handleProductCreate)
 	router.GET("/product/:id", handleProductGet)
-	router.GET("/product", handleProductAllGet)
-	router.POST("/stock/:id", handleStockSet)
 	router.DELETE("/product/:id", handleProductRemove)
+	router.POST("/stock/:id", handleStockSet)
 	router.GET("/stock/:id", handleStockGet)
 	router.GET("/stock", handleStockAllGet)
 	router.GET("/health", handleHealthCheck)
@@ -142,7 +142,7 @@ func handleProductAllGet(c *gin.Context) {
 
 func handleStockSet(c *gin.Context) {
 	id := c.Param("id")
-	var stock shared.ProductStock
+	var stock shared.ProductStockRequest
 	err := c.BindJSON(&stock)
 	if err != nil {
 		log.Error("Error parsing JSON:", err)
