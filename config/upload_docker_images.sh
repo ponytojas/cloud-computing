@@ -38,7 +38,9 @@ for dir in */ ; do
         echo "Building image for $dir_name with version $new_version"
 
         docker build -t "ponytojas/practica_mdaw_${dir_name}:${new_version}" "$dir"
+	docker build -t "ponytojas/practica_mdaw_${dir_name}:latest" "$dir"
         docker push "ponytojas/practica_mdaw_${dir_name}:${new_version}"
+	docker push "ponytojas/practica_mdaw_${dir_name}:latest"
 
         echo "$new_version" > "$version_file"
     fi

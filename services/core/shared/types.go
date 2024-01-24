@@ -38,9 +38,14 @@ type Product struct {
 	Description string
 }
 
-type ProductResponse struct {
+type ProductsResponse struct {
 	Status string
 	Data   []Product
+}
+
+type ProductResponse struct {
+	Status  string
+	Product Product
 }
 
 type ProductCreationResponse struct {

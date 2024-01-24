@@ -21,6 +21,7 @@ func init() {
 	log = logger.GetLogger()
 	dbUrl = os.Getenv("DB_SERVICE_URL")
 }
+
 func SetupHTTPServer() {
 	gin.ForceConsoleColor()
 	if os.Getenv("DEBUG") == "true" {

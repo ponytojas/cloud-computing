@@ -34,7 +34,7 @@ func handleAllProductGet(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	var response shared.ProductResponse
+	var response shared.ProductsResponse
 	err = json.NewDecoder(resp.Body).Decode(&response)
 	if err != nil {
 		log.Error("Error parsing response JSON:", err)
@@ -61,7 +61,7 @@ func handleProductGet(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	var response shared.Product
+	var response shared.ProductResponse
 	err = json.NewDecoder(resp.Body).Decode(&response)
 	if err != nil {
 		log.Error("Error parsing response JSON:", err)
@@ -76,7 +76,7 @@ func handleProductGet(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"status": "OK", "product": response})
+	c.JSON(http.StatusOK, gin.H{"Status": "OK", "Product": response.Product})
 }
 
 func handleProductPost(c *gin.Context) {
