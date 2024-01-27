@@ -7,23 +7,30 @@
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "npx --yes nuxt prepare"
   },
   "devDependencies": {
     "@nuxtjs/tailwindcss": "^6.11.0",
     "nuxt": "^3.9.3",
+    "nuxt-font-loader": "^2.3.5",
+    "nuxt-security": "^1.0.1",
     "shadcn-nuxt": "^0.8.7",
     "vue": "^3.4.14",
     "vue-router": "^4.2.5"
   },
   "dependencies": {
+    "@pinia/nuxt": "^0.5.1",
+    "@vee-validate/nuxt": "^4.12.4",
     "@vueuse/core": "^10.7.2",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
     "lucide-vue-next": "^0.314.0",
+    "pinia": "^2.1.7",
     "radix-vue": "^1.3.2",
     "tailwind-merge": "^2.2.1",
     "tailwindcss-animate": "^1.0.7",
-    "vue-sonner": "^1.0.3"
+    "vee-validate": "^4.12.4",
+    "vue-sonner": "^1.0.3",
+    "zod": "^3.22.4"
   }
 }
