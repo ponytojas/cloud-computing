@@ -15,7 +15,18 @@ increment_version() {
     fi
 }
 
-cd ../services
+cd DB
+echo "Building image for Postgres"
+docker build -t "ponytojas/practica_mdaw_postgres:latest" .
+docker push "ponytojas/practica_mdaw_postgres:latest"
+
+cd ../traefik
+echo "Building image for Traefik"
+docker build -t "ponytojas/practica_mdaw_traefik:latest" .
+docker push "ponytojas/practica_mdaw_traefik:latest"
+
+
+cd ../../services
 
 if [ $? -ne 0 ]; then
     echo "Error: Cant find path: ../services."
