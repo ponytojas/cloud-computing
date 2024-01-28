@@ -139,8 +139,8 @@ func handleLogin(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-
-	c.JSON(http.StatusOK, gin.H{"token": newToken})
+	log.Info("New token created for user:", usercheck.Username)
+	c.JSON(http.StatusOK, gin.H{"token": newToken, "status": "OK", "user": usercheck})
 }
 
 func handleLogout(c *gin.Context) {

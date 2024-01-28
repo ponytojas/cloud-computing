@@ -2,6 +2,8 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       apiBase: "",
+      cartBase: "",
+      paymentBase: "",
     },
   },
   css: ["~/assets/css/main.css"],

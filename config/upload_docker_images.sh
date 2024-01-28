@@ -25,27 +25,26 @@ fi
 for dir in */ ; do
     if [ -d "$dir" ]; then
         echo "Building image for $dir"
+        dir_name=$(basename "$dir")
+        version_file="${dir}version"
+        if [ -f "$version_file" ]; then
+            current_version=$(tr -d '\n' < "$version_file")
+        else
+            current_version="0.0.0"
+        fi
+
+        new_version=$(increment_version "$current_version")
+
+        # Añadir impresión para depuración
+        echo "Building image for $dir_name with version $new_version"
+
+        docker build -t "ponytojas/practica_mdaw_${dir_name}:${new_version}" "$dir"
+	    docker build -t "ponytojas/practica_mdaw_${dir_name}:latest" "$dir"
+        docker push "ponytojas/practica_mdaw_${dir_name}:${new_version}"
+	    docker push "ponytojas/practica_mdaw_${dir_name}:latest"
+
+        echo "$new_version" > "$version_file"
     fi
-    #     dir_name=$(basename "$dir")
-    #     version_file="${dir}version"
-    #     if [ -f "$version_file" ]; then
-    #         current_version=$(tr -d '\n' < "$version_file")
-    #     else
-    #         current_version="0.0.0"
-    #     fi
-
-    #     new_version=$(increment_version "$current_version")
-
-    #     # Añadir impresión para depuración
-    #     echo "Building image for $dir_name with version $new_version"
-
-    #     docker build -t "ponytojas/practica_mdaw_${dir_name}:${new_version}" "$dir"
-	#     docker build -t "ponytojas/practica_mdaw_${dir_name}:latest" "$dir"
-    #     docker push "ponytojas/practica_mdaw_${dir_name}:${new_version}"
-	#     docker push "ponytojas/practica_mdaw_${dir_name}:latest"
-
-    #     echo "$new_version" > "$version_file"
-    # fi
 done
 
 cd ../frontend

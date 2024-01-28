@@ -21,9 +21,13 @@
                     <DollarSign :size="20" />
                     <p class="text-xl">{{ product.Pricing }}</p>
                 </div>
-                <Button v-if="userStore.isLogging">
+                <Button v-if="userStore.isLogging && product?.stock > 0" @click="addToCart">
                     <ShoppingCart class="mr-4" />
                     Add to cart
+                </Button>
+                <Button v-else-if="userStore.isLogging && product?.stock <= 0" variant="outline" class="cursor-not-allowed">
+                    <HeartCrack class="mr-4" color="red" />
+                    Not available
                 </Button>
             </div>
         </CardFooter>
@@ -31,9 +35,15 @@
 </template>
 
 <script setup>
-import { DollarSign, ShoppingCart, Package, PackageOpen } from 'lucide-vue-next';
+import { DollarSign, HeartCrack, Package, PackageOpen, ShoppingCart } from 'lucide-vue-next';
+import { toast } from 'vue-sonner';
+
+import { useBagStore } from '../../store/bag';
 import { useUserStore } from '../../store/user';
+const headers = useRequestHeaders(['Authorization'])
 const userStore = useUserStore()
+const bagStore = useBagStore()
+const config = useRuntimeConfig()
 
 const { product } = defineProps({
     product: {
@@ -41,4 +51,29 @@ const { product } = defineProps({
         required: true
     }
 })
+
+const addToCart = async () => {
+    const token = userStore.token;
+    const userId = userStore.user.UserId;
+    const productId = product.ProductID;
+    const quantity = bagStore.howManyInBag(product.ProductID) === 0 ? 1 : bagStore.howManyInBag(product.ProductID) + 1;
+    const body = { userId, productId, quantity };
+    const res = await $fetch(`${config.public.cartBase}/v1/add-to-cart`, {
+        method: 'POST',
+        body: JSON.stringify(body),
+        headers: {
+            Authorization: `${token}`
+        },
+    });
+
+    if (!res) {
+        toast.error('Something went wrong')
+        return;
+    }
+    if (res.status === 'OK') {
+        toast.success('Added to the bag')
+        bagStore.add(product)
+    }
+
+}
 </script>

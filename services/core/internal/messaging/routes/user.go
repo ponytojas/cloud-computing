@@ -44,14 +44,14 @@ func handleLogin(c *gin.Context) {
 		}
 	}(resp.Body)
 
-	var token shared.Token
+	var token shared.TokenResponse
 	err = json.NewDecoder(resp.Body).Decode(&token)
 	if err != nil {
 		log.Error("Error decoding response body:", err)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"token": token.Token})
+	c.JSON(http.StatusOK, gin.H{"token": token.Token, "user": token.User, "status": token.Status})
 }
 
 func handleLogout(c *gin.Context) {

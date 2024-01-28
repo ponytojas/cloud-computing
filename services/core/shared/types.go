@@ -14,6 +14,12 @@ type AuthCheck struct {
 	Email    string
 }
 
+type TokenResponse struct {
+	Status string
+	Token  string
+	User   AuthCheck
+}
+
 type Token struct {
 	Token string
 }

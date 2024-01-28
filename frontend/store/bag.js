@@ -18,9 +18,27 @@ export const useBagStore = defineStore("bag", () => {
     return value;
   });
 
-  function clearBag(token) {
-    token.value = [];
+  function clearBag() {
+    items.value = [];
   }
 
-  return { clearBag, totalItems, items, total };
+  function add(item) {
+    const existing = items.value.find((i) => i.Id === item.Id);
+    if (existing) {
+      existing.Added++;
+    } else {
+      items.value.push({ ...item, Added: 1 });
+    }
+  }
+
+  function howManyInBag(productId) {
+    const existing = items.value.find((i) => i.Id === productId);
+    if (existing) {
+      return existing.Added;
+    } else {
+      return 0;
+    }
+  }
+
+  return { clearBag, add, howManyInBag, totalItems, items, total };
 });
