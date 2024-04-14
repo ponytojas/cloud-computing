@@ -11,7 +11,7 @@
   },
   "devDependencies": {
     "@nuxtjs/tailwindcss": "^6.11.0",
-    "nuxt": "^3.9.3",
+    "nuxt": "^3.11.2",
     "nuxt-font-loader": "^2.3.5",
     "nuxt-security": "^1.0.1",
     "shadcn-nuxt": "^0.8.7",
