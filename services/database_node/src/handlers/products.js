@@ -76,7 +76,7 @@ export const getProductStockHandler = async (req, res) => {
   logger.debug(`Getting stock for product with id ${productId}`);
   try {
     const result = await getProductStock(productId);
-    return res.status(200).json(result[0].stock);
+    return res.status(200).json(result[0]);
   } catch (e) {
     logger.error(e);
     return res.status(500).json({ Error: "Error getting product stock" });

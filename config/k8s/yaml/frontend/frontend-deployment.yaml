@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+        - name: frontend
+          image: ponytojas/practica_mdaw_nuxt-app:latest
+          env:
+            - name: NITRO_PORT
+              value: "9090"
+            - name: NUXT_PUBLIC_API_BASE
+              value: "http://core:5550"
+            - name: NUXT_PUBLIC_CART_BASE
+              value: "http://cart:5560"
+            - name: NUXT_PUBLIC_PAYMENT_BASE
+              value: "http://payment:5570"

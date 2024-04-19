@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: core
+spec:
+  ports:
+    - name: http
+      port: 5550
+  selector:
+    app: core

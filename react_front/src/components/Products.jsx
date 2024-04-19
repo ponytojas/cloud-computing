@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
 import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
 import { ProductCard } from "./ProductCard";
 
 export const Products = () => {
@@ -12,7 +11,7 @@ export const Products = () => {
       return;
     }
     const getData = async () => {
-      const res = await fetch(`${import.meta.env.VITE_CORE_BASE}/v1/product`);
+      const res = await fetch(`${import.meta.env.VITE_CORE_BASE}/v1/stock`);
       const data = await res.json();
       setProducts(data);
     };

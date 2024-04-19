@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f ./docker-compose.yml -o kompose
+    kompose.version: 1.32.0 (HEAD)
+    traefik.http.middlewares.testHeader.headers.browserxssfilter: "true"
+    traefik.http.middlewares.testHeader.headers.framedeny: "true"
+    traefik.http.middlewares.testheader.headers.accesscontrolallowheaders: Authorization
+    traefik.http.middlewares.testheader.headers.accesscontrolallowmethods: GET,OPTIONS,PUT
+    traefik.http.middlewares.testheader.headers.accesscontrolalloworiginlist: '*'
+    traefik.http.middlewares.testheader.headers.accesscontrolmaxage: "100"
+    traefik.http.middlewares.testheader.headers.addvaryheader: "true"
+    traefik.http.middlewares.testheader.headers.isdevelopment: "true"
+    traefik.http.middlewares.testheader.headers.permissionspolicy: '*'
+  labels:
+    io.kompose.service: store
+  name: store
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: store
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f ./docker-compose.yml -o kompose
+        kompose.version: 1.32.0 (HEAD)
+        traefik.http.middlewares.testHeader.headers.browserxssfilter: "true"
+        traefik.http.middlewares.testHeader.headers.framedeny: "true"
+        traefik.http.middlewares.testheader.headers.accesscontrolallowheaders: Authorization
+        traefik.http.middlewares.testheader.headers.accesscontrolallowmethods: GET,OPTIONS,PUT
+        traefik.http.middlewares.testheader.headers.accesscontrolalloworiginlist: '*'
+        traefik.http.middlewares.testheader.headers.accesscontrolmaxage: "100"
+        traefik.http.middlewares.testheader.headers.addvaryheader: "true"
+        traefik.http.middlewares.testheader.headers.isdevelopment: "true"
+        traefik.http.middlewares.testheader.headers.permissionspolicy: '*'
+      labels:
+        io.kompose.network/k8s-internal: "true"
+        io.kompose.service: store
+    spec:
+      containers:
+        - env:
+            - name: DB_SERVICE_URL
+              value: http://db:5555
+            - name: DEBUG
+              value: "false"
+            - name: HTTP_PORT
+              value: "5551"
+          image: ponytojas/practica_mdaw_store:latest
+          name: store
+      hostname: store
+      restartPolicy: Always

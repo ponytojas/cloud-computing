@@ -14,7 +14,9 @@ export const LoginDrawer = ({ open, toggleDrawer }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const token = useStore((state) => state.token);
+  const userId = useStore((state) => state.userId);
   const setToken = useStore((state) => state.setToken);
+  const setUserId = useStore((state) => state.setUserId);
 
   const sendLogin = async (data) => {
     try {
@@ -31,6 +33,7 @@ export const LoginDrawer = ({ open, toggleDrawer }) => {
       const response = await res.json();
       if (response.token) {
         setToken(response.token);
+        setUserId(response.user.userId);
         setLoading(false);
         toast.success("Login successful");
         toggleDrawer(false)();

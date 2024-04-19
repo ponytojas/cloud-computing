@@ -1,18 +1,22 @@
 version: "3.7"
 services:
-  traefik:
-    image: ponytojas/practica_mdaw_traefik:latest
-    ports:
-      - "80:80"
-      - "443:443"
-      - "8080:8080"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    networks:
-      - internal
-    logging:
-      options:
-        max-size: 50m
+  nginx:
+      image: ponytojas/practica_mdaw_nginx:latest
+      ports:
+        - "80:80"
+        - "443:443"
+      depends_on:
+        - postgres
+        - redis
+        - db
+        - auth
+        - store
+        - cart
+        - payment
+        - core
+        - frontend
+      networks:
+        - internal
 
   postgres:
     image: ponytojas/practica_mdaw_postgres:latest
@@ -53,16 +57,6 @@ services:
       - DB_SSLMODE=disable
       - HTTP_PORT=5555
       - DEBUG=false
-    labels:
-      - "traefik.http.middlewares.testHeader.headers.framedeny=true"
-      - "traefik.http.middlewares.testHeader.headers.browserxssfilter=true"
-      - "traefik.http.middlewares.testheader.headers.accesscontrolallowmethods=GET,OPTIONS,PUT"
-      - "traefik.http.middlewares.testheader.headers.accesscontrolallowheaders=Authorization"
-      - "traefik.http.middlewares.testheader.headers.accesscontrolalloworiginlist=*"
-      - "traefik.http.middlewares.testheader.headers.permissionspolicy=*"
-      - "traefik.http.middlewares.testheader.headers.accesscontrolmaxage=100"
-      - "traefik.http.middlewares.testheader.headers.addvaryheader=true"
-      - "traefik.http.middlewares.testheader.headers.isdevelopment=true"
     networks:
       - internal
     depends_on:
@@ -79,16 +73,6 @@ services:
       - HTTP_PORT=5554
       - REDIS_PORT=6379
       - DEBUG=false
-    labels:
-      - "traefik.http.middlewares.testHeader.headers.framedeny=true"
-      - "traefik.http.middlewares.testHeader.headers.browserxssfilter=true"
-      - "traefik.http.middlewares.testheader.headers.accesscontrolallowmethods=GET,OPTIONS,PUT"
-      - "traefik.http.middlewares.testheader.headers.accesscontrolallowheaders=Authorization"
-      - "traefik.http.middlewares.testheader.headers.accesscontrolalloworiginlist=*"
-      - "traefik.http.middlewares.testheader.headers.permissionspolicy=*"
-      - "traefik.http.middlewares.testheader.headers.accesscontrolmaxage=100"
-      - "traefik.http.middlewares.testheader.headers.addvaryheader=true"
-      - "traefik.http.middlewares.testheader.headers.isdevelopment=true"
     networks:
       - internal
     depends_on:
@@ -103,16 +87,6 @@ services:
       - DB_SERVICE_URL=http://db:5555
       - HTTP_PORT=5551
       - DEBUG=false
-    labels:
-      - "traefik.http.middlewares.testHeader.headers.framedeny=true"
-      - "traefik.http.middlewares.testHeader.headers.browserxssfilter=true"
-      - "traefik.http.middlewares.testheader.headers.accesscontrolallowmethods=GET,OPTIONS,PUT"
-      - "traefik.http.middlewares.testheader.headers.accesscontrolallowheaders=Authorization"
-      - "traefik.http.middlewares.testheader.headers.accesscontrolalloworiginlist=*"
-      - "traefik.http.middlewares.testheader.headers.permissionspolicy=*"
-      - "traefik.http.middlewares.testheader.headers.accesscontrolmaxage=100"
-      - "traefik.http.middlewares.testheader.headers.addvaryheader=true"
-      - "traefik.http.middlewares.testheader.headers.isdevelopment=true"
     networks:
       - internal
     depends_on:
@@ -130,23 +104,6 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - DEBUG=false
-    labels:
-      - "traefik.enable=true"
-      - "traefik.docker.network=internal"
-      - "traefik.http.routers.cart.rule=PathPrefix(`/cart`)"
-      - "traefik.http.services.cart.loadbalancer.server.port=5560"
-      - "traefik.http.middlewares.cart-stripprefix.stripprefix.prefixes=/cart"
-      - "traefik.http.routers.cart.middlewares=cart-stripprefix"
-      - "traefik.http.routers.cart.tls=true"
-      - "traefik.http.middlewares.testHeader.headers.framedeny=true"
-      - "traefik.http.middlewares.testHeader.headers.browserxssfilter=true"
-      - "traefik.http.middlewares.testheader.headers.accesscontrolallowmethods=GET,OPTIONS,PUT"
-      - "traefik.http.middlewares.testheader.headers.accesscontrolallowheaders=Authorization"
-      - "traefik.http.middlewares.testheader.headers.accesscontrolalloworiginlist=*"
-      - "traefik.http.middlewares.testheader.headers.permissionspolicy=*"
-      - "traefik.http.middlewares.testheader.headers.accesscontrolmaxage=100"
-      - "traefik.http.middlewares.testheader.headers.addvaryheader=true"
-      - "traefik.http.middlewares.testheader.headers.isdevelopment=true"
     networks:
       - internal
     depends_on:
@@ -164,23 +121,6 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - DEBUG=false
-    labels:
-      - "traefik.enable=true"
-      - "traefik.docker.network=internal"
-      - "traefik.http.routers.payment.rule=PathPrefix(`/payment`)"
-      - "traefik.http.services.payment.loadbalancer.server.port=5570"
-      - "traefik.http.middlewares.payment-stripprefix.stripprefix.prefixes=/payment"
-      - "traefik.http.routers.payment.middlewares=payment-stripprefix"
-      - "traefik.http.routers.payment.tls=true"
-      - "traefik.http.middlewares.testHeader.headers.framedeny=true"
-      - "traefik.http.middlewares.testHeader.headers.browserxssfilter=true"
-      - "traefik.http.middlewares.testheader.headers.accesscontrolallowmethods=GET,OPTIONS,PUT"
-      - "traefik.http.middlewares.testheader.headers.accesscontrolallowheaders=Authorization"
-      - "traefik.http.middlewares.testheader.headers.accesscontrolalloworiginlist=*"
-      - "traefik.http.middlewares.testheader.headers.permissionspolicy=*"
-      - "traefik.http.middlewares.testheader.headers.accesscontrolmaxage=100"
-      - "traefik.http.middlewares.testheader.headers.addvaryheader=true"
-      - "traefik.http.middlewares.testheader.headers.isdevelopment=true"
     networks:
       - internal
     depends_on:
@@ -198,23 +138,6 @@ services:
       - AUTH_SERVICE_URL=http://auth:5554
       - STORE_SERVICE_URL=http://store:5551
       - DEBUG=false
-    labels:
-      - "traefik.enable=true"
-      - "traefik.docker.network=internal"
-      - "traefik.http.routers.core.rule=PathPrefix(`/api`)"
-      - "traefik.http.services.core.loadbalancer.server.port=5550"
-      - "traefik.http.middlewares.core-stripprefix.stripprefix.prefixes=/api"
-      - "traefik.http.routers.core.middlewares=core-stripprefix"
-      - "traefik.http.routers.core.tls=true"
-      - "traefik.http.middlewares.testHeader.headers.framedeny=true"
-      - "traefik.http.middlewares.testHeader.headers.browserxssfilter=true"
-      - "traefik.http.middlewares.testheader.headers.accesscontrolallowmethods=GET,OPTIONS,PUT"
-      - "traefik.http.middlewares.testheader.headers.accesscontrolallowheaders=Authorization"
-      - "traefik.http.middlewares.testheader.headers.accesscontrolalloworiginlist=*"
-      - "traefik.http.middlewares.testheader.headers.permissionspolicy=*"
-      - "traefik.http.middlewares.testheader.headers.accesscontrolmaxage=100"
-      - "traefik.http.middlewares.testheader.headers.addvaryheader=true"
-      - "traefik.http.middlewares.testheader.headers.isdevelopment=true"
     networks:
       - internal
     depends_on:
@@ -223,38 +146,19 @@ services:
       - postgres
       - auth
       - store
-      - traefik
 
   frontend:
     image: ponytojas/practica_mdaw_nuxt-app:latest
-    labels:
-      - "traefik.enable=true"
-      - "traefik.docker.network=internal"
-      - "traefik.http.routers.frontend.rule=PathPrefix(`/`)"
-      - "traefik.http.services.frontend.loadbalancer.server.port=3000"
-      - "traefik.http.routers.frontend.tls=true"
-      - "traefik.http.middlewares.testHeader.headers.framedeny=true"
-      - "traefik.http.middlewares.testHeader.headers.browserxssfilter=true"
-      - "traefik.http.middlewares.testheader.headers.accesscontrolallowmethods=GET,OPTIONS,PUT"
-      - "traefik.http.middlewares.testheader.headers.accesscontrolallowheaders=Authorization"
-      - "traefik.http.middlewares.testheader.headers.accesscontrolalloworiginlist=*"
-      - "traefik.http.middlewares.testheader.headers.accesscontrolmaxage=100"
-      - "traefik.http.middlewares.testheader.headers.permissionspolicy=*"
-      - "traefik.http.middlewares.testheader.headers.addvaryheader=true"
-      - "traefik.http.middlewares.testheader.headers.isdevelopment=true"
     environment:
       - NUXT_PUBLIC_API_BASE=https://localhost/api
       - NUXT_PUBLIC_CART_BASE=https://localhost/cart
       - NUXT_PUBLIC_PAYMENT_BASE=https://localhost/payment
     depends_on:
       - core
-      - traefik
     networks:
       - internal
 
 volumes:
-  portainer_data:
-  gitea_data:
   postgres_data:
 
 

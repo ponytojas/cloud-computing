@@ -1,0 +1,394 @@
+##################################################################################################
+# Core service
+##################################################################################################
+apiVersion: v1
+kind: Service
+metadata:
+  name: core
+  labels:
+    app: core
+    service: core
+spec:
+  ports:
+    - port: 5550
+      name: http
+  selector:
+    app: core
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: mdaw-core
+  labels:
+    account: core
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: core-v1
+  labels:
+    app: core
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: core
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: core
+        version: v1
+      annotations:
+        traefik.enable: "true"
+        traefik.docker.network: "internal"
+        traefik.http.routers.core.rule: "PathPrefix(`/api/v1`)"
+        traefik.http.services.core.loadbalancer.server.port: "5550"
+        traefik.http.middlewares.core-stripprefix.stripprefix.prefixes: "/api/v1"
+        traefik.http.routers.core.middlewares: "core-stripprefix"
+    spec:
+      serviceAccountName: mdaw-core
+      containers:
+        - name: core
+          image: ponytojas/practica_mdaw_core:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5550
+          env:
+            - name: HTTP_PORT
+              value: "5550"
+            - name: AUTH_SERVICE_URL
+              value: "http://auth:5554"
+            - name: STORE_SERVICE_URL
+              value: "http://store:5551"
+            - name: DEBUG
+              value: "false"
+---
+##################################################################################################
+# Auth service
+##################################################################################################
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth
+  labels:
+    app: auth
+    service: auth
+spec:
+  ports:
+    - port: 5554
+      name: http
+  selector:
+    app: auth
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: mdaw-auth
+  labels:
+    account: auth
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-v1
+  labels:
+    app: auth
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: auth
+        version: v1
+    spec:
+      serviceAccountName: mdaw-auth
+      containers:
+        - name: auth
+          image: ponytojas/practica_mdaw_auth:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5554
+          env:
+            - name: DB_SERVICE_URL
+              value: "http://db:5555"
+            - name: REDIS_HOST
+              value: "redis"
+            - name: JWT_SECRET
+              value: "JunoMolaAsiQueMasPlachanito"
+            - name: HTTP_PORT
+              value: "5554"
+            - name: REDIS_PORT
+              value: "6379"
+            - name: DEBUG
+              value: "false"
+---
+##################################################################################################
+# DB service
+##################################################################################################
+apiVersion: v1
+kind: Service
+metadata:
+  name: db
+  labels:
+    app: db
+    service: db
+spec:
+  ports:
+    - port: 5555
+      name: http
+  selector:
+    app: db
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: mdaw-db
+  labels:
+    account: db
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: db-v1
+  labels:
+    app: db
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: db
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: db
+        version: v1
+    spec:
+      serviceAccountName: mdaw-db
+      containers:
+        - name: db
+          image: ponytojas/practica_mdaw_database:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: DB_HOST
+              value: "192.168.194.2"
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_USER
+              value: "postgres"
+            - name: DB_PASS
+              value: "mysecretpassword"
+            - name: DB_NAME
+              value: "postgres"
+            - name: DB_SSLMODE
+              value: "disable"
+            - name: HTTP_PORT
+              value: "5555"
+            - name: DEBUG
+              value: "false"
+          ports:
+            - containerPort: 5555
+---
+##################################################################################################
+# Postgres services
+##################################################################################################
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  labels:
+    app: postgres
+    service: postgres
+spec:
+  ports:
+    - port: 5432
+      name: http
+  selector:
+    app: postgres
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: mdaw-postgres
+  labels:
+    account: postgres
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-v1
+  labels:
+    app: postgres
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: ponytojas/practica_mdaw_postgres:latest
+          env:
+            - name: POSTGRES_USER
+              value: "postgres"
+            - name: POSTGRES_PASSWORD
+              value: "mysecretpassword"
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: postgres-data
+          persistentVolumeClaim:
+            claimName: postgres-pvc
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+##################################################################################################
+# Frontend services
+##################################################################################################
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  labels:
+    app: frontend
+    service: frontend
+spec:
+  ports:
+    - port: 9090
+      name: http
+  selector:
+    app: frontend
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: mdaw-frontend
+  labels:
+    account: frontend
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-v1
+  labels:
+    app: frontend
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: frontend
+        version: v1
+      annotations:
+        traefik.enable: "true"
+        traefik.docker.network: "internal"
+        traefik.http.routers.core.rule: "PathPrefix(`/`)"
+        traefik.http.services.core.loadbalancer.server.port: "9090"
+        traefik.http.middlewares.app-stripprefix.stripprefix.prefixes: "/"
+        traefik.http.routers.core.middlewares: "app-stripprefix"
+    spec:
+      serviceAccountName: mdaw-frontend
+      containers:
+        - name: frontend
+          image: ponytojas/practica_mdaw_nuxt-app:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: NITRO_PORT
+              value: "9090"
+            - name: NUXT_PUBLIC_API_BASE
+              value: "http://core:5550"
+            - name: NUXT_PUBLIC_CART_BASE
+              value: "http://cart:5560"
+            - name: NUXT_PUBLIC_PAYMENT_BASE
+              value: "http://payment:5570"
+          ports:
+            - containerPort: 9090
+---
+##################################################################################################
+# Traefik services
+##################################################################################################
+apiVersion: v1
+kind: Service
+metadata:
+  name: traefik
+  labels:
+    app: traefik
+    service: traefik
+spec:
+  ports:
+    - port: 80
+      name: http
+    - port: 443
+      name: https
+    - port: 8080
+      name: http-dashboard
+  selector:
+    app: traefik
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: mdaw-traefik
+  labels:
+    account: traefik
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: traefik-v1
+  labels:
+    app: traefik
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: traefik
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: traefik
+        version: v1
+    spec:
+      serviceAccountName: mdaw-traefik
+      containers:
+        - name: traefik
+          image: ponytojas/practica_mdaw_traefik:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+            - containerPort: 443
+            - containerPort: 8080
+      restartPolicy: Always
+---

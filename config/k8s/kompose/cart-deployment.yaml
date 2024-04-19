@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f ./docker-compose.yml -o kompose
+    kompose.version: 1.32.0 (HEAD)
+    traefik.docker.network: internal
+    traefik.enable: "true"
+    traefik.http.middlewares.cart-stripprefix.stripprefix.prefixes: /cart
+    traefik.http.middlewares.testHeader.headers.browserxssfilter: "true"
+    traefik.http.middlewares.testHeader.headers.framedeny: "true"
+    traefik.http.middlewares.testheader.headers.accesscontrolallowheaders: Authorization
+    traefik.http.middlewares.testheader.headers.accesscontrolallowmethods: GET,OPTIONS,PUT
+    traefik.http.middlewares.testheader.headers.accesscontrolalloworiginlist: '*'
+    traefik.http.middlewares.testheader.headers.accesscontrolmaxage: "100"
+    traefik.http.middlewares.testheader.headers.addvaryheader: "true"
+    traefik.http.middlewares.testheader.headers.isdevelopment: "true"
+    traefik.http.middlewares.testheader.headers.permissionspolicy: '*'
+    traefik.http.routers.cart.middlewares: cart-stripprefix
+    traefik.http.routers.cart.rule: PathPrefix(`/cart`)
+    traefik.http.routers.cart.tls: "true"
+    traefik.http.services.cart.loadbalancer.server.port: "5560"
+  labels:
+    io.kompose.service: cart
+  name: cart
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: cart
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f ./docker-compose.yml -o kompose
+        kompose.version: 1.32.0 (HEAD)
+        traefik.docker.network: internal
+        traefik.enable: "true"
+        traefik.http.middlewares.cart-stripprefix.stripprefix.prefixes: /cart
+        traefik.http.middlewares.testHeader.headers.browserxssfilter: "true"
+        traefik.http.middlewares.testHeader.headers.framedeny: "true"
+        traefik.http.middlewares.testheader.headers.accesscontrolallowheaders: Authorization
+        traefik.http.middlewares.testheader.headers.accesscontrolallowmethods: GET,OPTIONS,PUT
+        traefik.http.middlewares.testheader.headers.accesscontrolalloworiginlist: '*'
+        traefik.http.middlewares.testheader.headers.accesscontrolmaxage: "100"
+        traefik.http.middlewares.testheader.headers.addvaryheader: "true"
+        traefik.http.middlewares.testheader.headers.isdevelopment: "true"
+        traefik.http.middlewares.testheader.headers.permissionspolicy: '*'
+        traefik.http.routers.cart.middlewares: cart-stripprefix
+        traefik.http.routers.cart.rule: PathPrefix(`/cart`)
+        traefik.http.routers.cart.tls: "true"
+        traefik.http.services.cart.loadbalancer.server.port: "5560"
+      labels:
+        io.kompose.network/k8s-internal: "true"
+        io.kompose.service: cart
+    spec:
+      containers:
+        - env:
+            - name: AUTH_SERVICE_URL
+              value: http://auth:5554
+            - name: DEBUG
+              value: "false"
+            - name: HTTP_PORT
+              value: "5560"
+            - name: REDIS_HOST
+              value: redis
+            - name: REDIS_PORT
+              value: "6379"
+            - name: STORE_SERVICE_URL
+              value: http://store:5551
+          image: ponytojas/practica_mdaw_cart:latest
+          name: cart
+      hostname: cart
+      restartPolicy: Always

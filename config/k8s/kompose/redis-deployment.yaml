@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f ./docker-compose.yml -o kompose
+    kompose.version: 1.32.0 (HEAD)
+  labels:
+    io.kompose.service: redis
+  name: redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: redis
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f ./docker-compose.yml -o kompose
+        kompose.version: 1.32.0 (HEAD)
+      labels:
+        io.kompose.network/k8s-internal: "true"
+        io.kompose.service: redis
+    spec:
+      containers:
+        - image: redis:7.2.4-alpine3.19
+          name: redis
+          ports:
+            - containerPort: 6379
+              hostPort: 6379
+              protocol: TCP
+      hostname: redis
+      restartPolicy: Always

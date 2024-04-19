@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth
+  template:
+    metadata:
+      labels:
+        app: auth
+    spec:
+      containers:
+        - name: auth
+          image: ponytojas/practica_mdaw_auth:latest
+          env:
+            - name: DB_SERVICE_URL
+              value: "http://db:5555"
+            - name: REDIS_HOST
+              value: "redis"
+            - name: JWT_SECRET
+              value: "JunoMolaAsiQueMasPlachanito"
+            - name: HTTP_PORT
+              value: "5554"
+            - name: REDIS_PORT
+              value: "6379"
+            - name: DEBUG
+              value: "false"

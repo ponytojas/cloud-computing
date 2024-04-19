@@ -85,19 +85,19 @@ func Init() (*sql.DB, error) {
 	for i := 0; i < 10; i++ {
 		db, err = sql.Open("postgres", dataSourceName)
 		if err != nil {
-			log.Warn("Error connecting to database: retrying %d/10", i+1)
+			log.Warn("Error connecting to database: retrying")
 			time.Sleep(1 * time.Second)
 			continue
 		}
 
 		if err = db.Ping(); err != nil {
-			log.Warn("Error connecting to database: retrying %d/10", i+1)
+			log.Warn("Error connecting to database: retrying")
 			time.Sleep(1 * time.Second)
 			continue
 		}
 
 		if err := checkDatabases(db); err != nil {
-			log.Warn("Error connecting to database: retrying %d/10", i+1)
+			log.Warn("Error connecting to database: retrying")
 			time.Sleep(1 * time.Second)
 			continue
 		}
