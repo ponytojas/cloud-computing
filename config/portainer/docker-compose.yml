@@ -3,8 +3,8 @@ services:
   nginx:
       image: ponytojas/practica_mdaw_nginx:latest
       ports:
-        - "80:80"
-        - "443:443"
+        - "8080:80"
+        - "8443:443"
       depends_on:
         - postgres
         - redis
@@ -47,7 +47,7 @@ services:
 
   db:
     hostname: db
-    image: ponytojas/practica_mdaw_database:latest
+    image: ponytojas/practica_mdaw_database_node:latest
     environment:
       - DB_HOST=postgres
       - DB_PORT=5432
@@ -59,13 +59,15 @@ services:
       - DEBUG=false
     networks:
       - internal
+    ports:
+      - "5555:5555"
     depends_on:
       - postgres
       - redis
 
   auth:
     hostname: auth
-    image: ponytojas/practica_mdaw_auth:latest
+    image: ponytojas/practica_mdaw_auth_node:latest
     environment:
       - DB_SERVICE_URL=http://db:5555
       - REDIS_HOST=redis
@@ -75,6 +77,8 @@ services:
       - DEBUG=false
     networks:
       - internal
+    ports:
+      - "5554:5554"
     depends_on:
       - db
       - redis
@@ -82,13 +86,15 @@ services:
 
   store:
     hostname: store
-    image: ponytojas/practica_mdaw_store:latest
+    image: ponytojas/practica_mdaw_store_node:latest
     environment:
       - DB_SERVICE_URL=http://db:5555
       - HTTP_PORT=5551
       - DEBUG=false
     networks:
       - internal
+    ports:
+      - "5551:5551"
     depends_on:
       - db
       - redis
@@ -96,7 +102,7 @@ services:
 
   cart:
     hostname: cart
-    image: ponytojas/practica_mdaw_cart:latest
+    image: ponytojas/practica_mdaw_cart_node:latest
     environment:
       - HTTP_PORT=5560
       - AUTH_SERVICE_URL=http://auth:5554
@@ -106,6 +112,8 @@ services:
       - DEBUG=false
     networks:
       - internal
+    ports:
+      - "5560:5560"
     depends_on:
       - db
       - redis
@@ -113,7 +121,7 @@ services:
 
   payment:
     hostname: payment
-    image: ponytojas/practica_mdaw_payment:latest
+    image: ponytojas/practica_mdaw_payment_node:latest
     environment:
       - HTTP_PORT=5570
       - AUTH_SERVICE_URL=http://auth:5554
@@ -121,6 +129,8 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - DEBUG=false
+    ports:
+      - "5570:5570"
     networks:
       - internal
     depends_on:
@@ -130,7 +140,7 @@ services:
 
   core:
     hostname: core
-    image: ponytojas/practica_mdaw_core:latest
+    image: ponytojas/practica_mdaw_core_node:latest
     security_opt:
       - no-new-privileges:true
     environment:
@@ -140,6 +150,8 @@ services:
       - DEBUG=false
     networks:
       - internal
+    ports:
+      - "5550:5550"
     depends_on:
       - db
       - redis
@@ -148,13 +160,15 @@ services:
       - store
 
   frontend:
-    image: ponytojas/practica_mdaw_nuxt-app:latest
+    image: ponytojas/practica_mdaw_frontend:latest
     environment:
-      - NUXT_PUBLIC_API_BASE=https://localhost/api
-      - NUXT_PUBLIC_CART_BASE=https://localhost/cart
-      - NUXT_PUBLIC_PAYMENT_BASE=https://localhost/payment
+      - VITE_CORE_BASE=https://localhost/api
+      - VITE_CART_BASE=https://localhost/cart
+      - VITE_PAYMENT_BASE=https://localhost/payment
     depends_on:
       - core
+    ports:
+      - "8800:80"
     networks:
       - internal
 

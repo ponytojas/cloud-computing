@@ -15,7 +15,7 @@ export const App = () => {
   const cart = useStore((state) => state.cart);
   const token = useStore((state) => state.token);
 
-  const toggleDrawer = () => () => {
+  const toggleDrawer = () => {
     setOpen((prev) => !prev);
   };
 
@@ -88,7 +88,7 @@ export const App = () => {
           <Typography variant="h2" sx={{ fontWeight: 100 }}>
             Products
           </Typography>
-          <IconButton aria-label="delete" onClick={toggleDrawer(true)}>
+          <IconButton aria-label="delete" onClick={toggleDrawer}>
             <MenuIcon />
           </IconButton>
         </Box>
