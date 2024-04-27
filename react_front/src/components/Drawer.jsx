@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import PropTypes from "prop-types";
+
 import Box from "@mui/material/Box";
 import Drawer from "@mui/material/Drawer";
 import TextField from "@mui/material/TextField";
@@ -14,7 +16,6 @@ export const LoginDrawer = ({ open, toggleDrawer }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const token = useStore((state) => state.token);
-  const userId = useStore((state) => state.userId);
   const setToken = useStore((state) => state.setToken);
   const setUserId = useStore((state) => state.setUserId);
 
@@ -55,7 +56,7 @@ export const LoginDrawer = ({ open, toggleDrawer }) => {
   };
 
   const DrawerList = (
-    <Box sx={{ width: 350, p: 3 }} role="presentation">
+    <Box sx={{ width: 350, p: 3 }}>
       {!token && (
         <>
           <Typography variant="h6" component="h2">
@@ -92,17 +93,15 @@ export const LoginDrawer = ({ open, toggleDrawer }) => {
         </>
       )}
       {token && (
-        <>
-          <LoadingButton
-            onClick={() => setToken("")}
-            endIcon={<ExitToAppIcon />}
-            loading={loading}
-            loadingPosition="end"
-            variant="contained"
-          >
-            <span>Logout</span>
-          </LoadingButton>
-        </>
+        <LoadingButton
+          onClick={() => setToken("")}
+          endIcon={<ExitToAppIcon />}
+          loading={loading}
+          loadingPosition="end"
+          variant="contained"
+        >
+          <span>Logout</span>
+        </LoadingButton>
       )}
     </Box>
   );
@@ -114,4 +113,9 @@ export const LoginDrawer = ({ open, toggleDrawer }) => {
       </Drawer>
     </div>
   );
+};
+
+LoginDrawer.propTypes = {
+  open: PropTypes.bool,
+  toggleDrawer: PropTypes.func,
 };

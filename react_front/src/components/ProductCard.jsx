@@ -1,4 +1,6 @@
 import React from "react";
+import PropTypes from "prop-types";
+
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import { Button } from "@mui/material";
@@ -78,4 +80,14 @@ export const ProductCard = ({ product }) => {
       )}
     </Box>
   );
+};
+
+ProductCard.propTypes = {
+  product: PropTypes.shape({
+    product_id: PropTypes.number,
+    name: PropTypes.string,
+    description: PropTypes.string,
+    pricing: PropTypes.number,
+    quantity: PropTypes.number,
+  }),
 };

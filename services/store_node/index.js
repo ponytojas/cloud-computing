@@ -15,6 +15,7 @@ import { logger } from "./src/utils/logger.js";
 dotenv.config();
 
 const app = express();
+app.disable("x-powered-by");
 app.use(cors());
 
 app.use(express.json());

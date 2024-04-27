@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react";
+import PropTypes from "prop-types";
 import { Box, Button, Drawer, Typography } from "@mui/material";
 import CloseFullscreenIcon from "@mui/icons-material/CloseFullscreen";
 import { useStore } from "../store";
+
 export const BottomDrawer = ({ open, toggleDrawer }) => {
   const [totalPrice, setTotalPrice] = useState(0);
 
@@ -96,4 +98,9 @@ export const BottomDrawer = ({ open, toggleDrawer }) => {
       </Box>
     )
   );
+};
+
+BottomDrawer.propTypes = {
+  open: PropTypes.bool,
+  toggleDrawer: PropTypes.func,
 };

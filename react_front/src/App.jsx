@@ -1,7 +1,7 @@
 import { Box, Button, IconButton, Typography } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { LoginDrawer } from "./components/Drawer";
 import { Products } from "./components/Products";
 import { useStore } from "./store";
@@ -32,37 +32,35 @@ export const App = () => {
   return (
     <>
       {token && (
-        <>
+        <Box
+          sx={{
+            position: "fixed",
+            bottom: "3vh",
+            width: "100%",
+            p: 2,
+            zIndex: 1000,
+          }}
+        >
           <Box
-            sx={{
-              position: "fixed",
-              bottom: "3vh",
-              width: "100%",
-              p: 2,
-              zIndex: 1000,
-            }}
+            sx={{ display: "flex", width: "100%", justifyContent: "center" }}
           >
-            <Box
-              sx={{ display: "flex", width: "100%", justifyContent: "center" }}
+            <Button
+              color="success"
+              sx={{
+                borderRadius: "20px",
+                px: 4,
+                py: 1,
+                boxShadow:
+                  " 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)",
+              }}
+              variant="contained"
+              startIcon={<ShoppingCartIcon sx={{ mr: 1 }} />}
+              onClick={toggleBottomDrawer}
             >
-              <Button
-                color="success"
-                sx={{
-                  borderRadius: "20px",
-                  px: 4,
-                  py: 1,
-                  boxShadow:
-                    " 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)",
-                }}
-                variant="contained"
-                startIcon={<ShoppingCartIcon sx={{ mr: 1 }} />}
-                onClick={toggleBottomDrawer}
-              >
-                {`Cart (${items})`}
-              </Button>
-            </Box>
+              {`Cart (${items})`}
+            </Button>
           </Box>
-        </>
+        </Box>
       )}
       <BottomDrawer open={openCart} toggleDrawer={toggleBottomDrawer} />
 

@@ -12,7 +12,6 @@ export class Redis {
       this.client.connect().catch(console.error);
       Redis.instance = this;
     }
-    return Redis.instance;
   }
 
   async set(key, value) {

@@ -6,7 +6,7 @@ dotenv.config();
 
 export class Database {
   constructor() {
-    if (Database.instance) {
+    if (!Database.instance) {
       return Database.instance;
     }
     Database.instance = this;
