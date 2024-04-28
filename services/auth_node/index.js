@@ -1,6 +1,8 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import { escape } from "html-escaper";
+
 import {
   registerHandler,
   loginUserHandler,
@@ -30,7 +32,7 @@ app.post("/check", async (req, res) => {
   if (token) {
     const result = await checkToken(token);
     if (result) {
-      res.status(200).send(result);
+      res.status(200).send(escape(result));
     } else {
       res.status(401).send("Unauthorized");
     }
