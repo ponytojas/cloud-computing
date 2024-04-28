@@ -407,6 +407,13 @@ spec:
       labels:
         app: postgres
     spec:
+      initContainers:
+        - name: volume-permissions
+          image: busybox
+          command: ["sh", "-c", "chown -R 999:999 /var/lib/postgresql/data"]
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: postgres-data
       containers:
         - name: postgres
           image: ponytojas/practica_mdaw_postgres:latest
@@ -420,10 +427,6 @@ spec:
               value: postgres
           securityContext:
             allowPrivilegeEscalation: false
-            runAsNonRoot: true
-            capabilities:
-              drop:
-                - ALL
           volumeMounts:
             - mountPath: /var/lib/postgresql/data
               name: postgres-data
