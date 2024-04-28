@@ -122,6 +122,12 @@ spec:
     metadata:
     spec:
       containers:
+        - securityContext:
+            - allowPrivilegeEscalation: false
+            - runAsNonRoot: true
+            - capabilities:
+                drop:
+                  - ALL
         - env:
             - name: DB_SERVICE_URL
               value: http://db:5555
@@ -154,6 +160,12 @@ spec:
   template:
     spec:
       containers:
+        - securityContext:
+            - allowPrivilegeEscalation: false
+            - runAsNonRoot: true
+            - capabilities:
+                drop:
+                  - ALL
         - env:
             - name: AUTH_SERVICE_URL
               value: http://auth:5554
@@ -187,6 +199,12 @@ spec:
     metadata:
     spec:
       containers:
+        - securityContext:
+            - allowPrivilegeEscalation: false
+            - runAsNonRoot: true
+            - capabilities:
+                drop:
+                  - ALL
         - env:
             - name: AUTH_SERVICE_URL
               value: http://auth:5554
@@ -216,6 +234,12 @@ spec:
     metadata:
     spec:
       containers:
+        - securityContext:
+            - allowPrivilegeEscalation: false
+            - runAsNonRoot: true
+            - capabilities:
+                drop:
+                  - ALL
         - env:
             - name: DB_HOST
               value: postgres
@@ -253,6 +277,12 @@ spec:
     metadata:
     spec:
       containers:
+        - securityContext:
+            - allowPrivilegeEscalation: false
+            - runAsNonRoot: true
+            - capabilities:
+                drop:
+                  - ALL
         - env:
             - name: VITE_CART_BASE
               value: https://nginx/cart
@@ -301,6 +331,12 @@ spec:
     metadata:
     spec:
       containers:
+        - securityContext:
+            - allowPrivilegeEscalation: false
+            - runAsNonRoot: true
+            - capabilities:
+                drop:
+                  - ALL
         - env:
             - name: AUTH_SERVICE_URL
               value: http://auth:5554
@@ -336,6 +372,12 @@ spec:
     metadata:
     spec:
       containers:
+        - securityContext:
+            - allowPrivilegeEscalation: false
+            - runAsNonRoot: true
+            - capabilities:
+                drop:
+                  - ALL
         - env:
             - name: POSTGRES_PASSWORD
               value: mysecretpassword
@@ -400,6 +442,12 @@ spec:
     metadata:
     spec:
       containers:
+        - securityContext:
+            - allowPrivilegeEscalation: false
+            - runAsNonRoot: true
+            - capabilities:
+                drop:
+                  - ALL
         - env:
             - name: DB_SERVICE_URL
               value: http://db:5555
