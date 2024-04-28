@@ -147,7 +147,6 @@ spec:
               value: "6379"
           securityContext:
             allowPrivilegeEscalation: false
-            runAsNonRoot: true
             capabilities:
               drop:
                 - ALL
@@ -185,7 +184,6 @@ spec:
           name: cart
           securityContext:
             allowPrivilegeEscalation: false
-            runAsNonRoot: true
             capabilities:
               drop:
                 - ALL
@@ -224,7 +222,6 @@ spec:
           name: core
           securityContext:
             allowPrivilegeEscalation: false
-            runAsNonRoot: true
             capabilities:
               drop:
                 - ALL
@@ -271,7 +268,6 @@ spec:
           name: db
           securityContext:
             allowPrivilegeEscalation: false
-            runAsNonRoot: true
             capabilities:
               drop:
                 - ALL
@@ -308,10 +304,6 @@ spec:
           name: frontend
           securityContext:
             allowPrivilegeEscalation: false
-            runAsNonRoot: true
-            capabilities:
-              drop:
-                - ALL
           ports:
             - containerPort: 80
               hostPort: 8800
@@ -336,10 +328,6 @@ spec:
         - image: ponytojas/practica_mdaw_nginx:latest
           securityContext:
             allowPrivilegeEscalation: false
-            runAsNonRoot: true
-            capabilities:
-              drop:
-                - ALL
           name: nginx
           ports:
             - containerPort: 80
@@ -381,7 +369,6 @@ spec:
           image: ponytojas/practica_mdaw_payment_node:latest
           securityContext:
             allowPrivilegeEscalation: false
-            runAsNonRoot: true
             capabilities:
               drop:
                 - ALL
@@ -499,7 +486,6 @@ spec:
               value: "5551"
           securityContext:
             allowPrivilegeEscalation: false
-            runAsNonRoot: true
             capabilities:
               drop:
                 - ALL
