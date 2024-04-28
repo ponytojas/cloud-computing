@@ -118,17 +118,21 @@ metadata:
   name: auth
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      app: auth
   template:
     metadata:
+      labels:
+        app: auth
     spec:
       containers:
-        - securityContext:
-            - allowPrivilegeEscalation: false
-            - runAsNonRoot: true
-            - capabilities:
-                drop:
-                  - ALL
-        - env:
+        - name: auth
+          image: ponytojas/practica_mdaw_auth_node:latest
+          ports:
+            - containerPort: 5554
+              protocol: TCP
+          env:
             - name: DB_SERVICE_URL
               value: http://db:5555
             - name: DEBUG
@@ -141,15 +145,13 @@ spec:
               value: redis
             - name: REDIS_PORT
               value: "6379"
-          image: ponytojas/practica_mdaw_auth_node:latest
-          name: auth
-          ports:
-            - containerPort: 5554
-              hostPort: 5554
-              protocol: TCP
-      hostname: auth
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            capabilities:
+              drop:
+                - ALL
       restartPolicy: Always
-
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -157,15 +159,15 @@ metadata:
   name: cart
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      app: cart
   template:
+    metadata:
+      labels:
+        app: cart
     spec:
       containers:
-        - securityContext:
-            - allowPrivilegeEscalation: false
-            - runAsNonRoot: true
-            - capabilities:
-                drop:
-                  - ALL
         - env:
             - name: AUTH_SERVICE_URL
               value: http://auth:5554
@@ -181,13 +183,18 @@ spec:
               value: http://store:5551
           image: ponytojas/practica_mdaw_cart_node:latest
           name: cart
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            capabilities:
+              drop:
+                - ALL
           ports:
             - containerPort: 5560
               hostPort: 5560
               protocol: TCP
       hostname: cart
       restartPolicy: Always
-
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -195,16 +202,15 @@ metadata:
   name: core
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      app: core
   template:
     metadata:
+      labels:
+        app: core
     spec:
       containers:
-        - securityContext:
-            - allowPrivilegeEscalation: false
-            - runAsNonRoot: true
-            - capabilities:
-                drop:
-                  - ALL
         - env:
             - name: AUTH_SERVICE_URL
               value: http://auth:5554
@@ -216,13 +222,18 @@ spec:
               value: http://store:5551
           image: ponytojas/practica_mdaw_core_node:latest
           name: core
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            capabilities:
+              drop:
+                - ALL
           ports:
             - containerPort: 5550
               hostPort: 5550
               protocol: TCP
       hostname: core
       restartPolicy: Always
-
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -230,16 +241,15 @@ metadata:
   name: db
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      app: db
   template:
     metadata:
+      labels:
+        app: db
     spec:
       containers:
-        - securityContext:
-            - allowPrivilegeEscalation: false
-            - runAsNonRoot: true
-            - capabilities:
-                drop:
-                  - ALL
         - env:
             - name: DB_HOST
               value: postgres
@@ -259,13 +269,18 @@ spec:
               value: "5555"
           image: ponytojas/practica_mdaw_database_node:latest
           name: db
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            capabilities:
+              drop:
+                - ALL
           ports:
             - containerPort: 5555
               hostPort: 5555
               protocol: TCP
       hostname: db
       restartPolicy: Always
-
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -273,16 +288,15 @@ metadata:
   name: frontend
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
   template:
     metadata:
+      labels:
+        app: frontend
     spec:
       containers:
-        - securityContext:
-            - allowPrivilegeEscalation: false
-            - runAsNonRoot: true
-            - capabilities:
-                drop:
-                  - ALL
         - env:
             - name: VITE_CART_BASE
               value: https://nginx/cart
@@ -292,12 +306,17 @@ spec:
               value: https://nginx/payment
           image: ponytojas/practica_mdaw_frontend:latest
           name: frontend
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            capabilities:
+              drop:
+                - ALL
           ports:
             - containerPort: 80
               hostPort: 8800
               protocol: TCP
       restartPolicy: Always
-
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -305,11 +324,22 @@ metadata:
   name: nginx
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
   template:
     metadata:
+      labels:
+        app: nginx
     spec:
       containers:
         - image: ponytojas/practica_mdaw_nginx:latest
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            capabilities:
+              drop:
+                - ALL
           name: nginx
           ports:
             - containerPort: 80
@@ -319,7 +349,6 @@ spec:
               hostPort: 8443
               protocol: TCP
       restartPolicy: Always
-
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -327,16 +356,15 @@ metadata:
   name: payment
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      app: payment
   template:
     metadata:
+      labels:
+        app: payment
     spec:
       containers:
-        - securityContext:
-            - allowPrivilegeEscalation: false
-            - runAsNonRoot: true
-            - capabilities:
-                drop:
-                  - ALL
         - env:
             - name: AUTH_SERVICE_URL
               value: http://auth:5554
@@ -351,6 +379,12 @@ spec:
             - name: STORE_SERVICE_URL
               value: http://store:5551
           image: ponytojas/practica_mdaw_payment_node:latest
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            capabilities:
+              drop:
+                - ALL
           name: payment
           ports:
             - containerPort: 5570
@@ -358,7 +392,6 @@ spec:
               protocol: TCP
       hostname: payment
       restartPolicy: Always
-
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -366,39 +399,39 @@ metadata:
   name: postgres
 spec:
   replicas: 1
-  strategy:
-    type: Recreate
+  selector:
+    matchLabels:
+      app: postgres
   template:
     metadata:
+      labels:
+        app: postgres
     spec:
       containers:
-        - securityContext:
-            - allowPrivilegeEscalation: false
-            - runAsNonRoot: true
-            - capabilities:
-                drop:
-                  - ALL
-        - env:
+        - name: postgres
+          image: ponytojas/practica_mdaw_postgres:latest
+          ports:
+            - containerPort: 5432
+              protocol: TCP
+          env:
             - name: POSTGRES_PASSWORD
               value: mysecretpassword
             - name: POSTGRES_USER
               value: postgres
-          image: ponytojas/practica_mdaw_postgres:latest
-          name: postgres
-          ports:
-            - containerPort: 5432
-              hostPort: 5432
-              protocol: TCP
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            capabilities:
+              drop:
+                - ALL
           volumeMounts:
             - mountPath: /var/lib/postgresql/data
               name: postgres-data
-      hostname: postgres
       restartPolicy: Always
       volumes:
         - name: postgres-data
           persistentVolumeClaim:
             claimName: postgres-data
-
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -418,19 +451,21 @@ metadata:
   name: redis
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      app: redis
   template:
     metadata:
+      labels:
+        app: redis
     spec:
       containers:
-        - image: redis:7.2.4-alpine3.19
-          name: redis
+        - name: redis
+          image: redis:7.2.4-alpine3.19
           ports:
             - containerPort: 6379
-              hostPort: 6379
               protocol: TCP
-      hostname: redis
       restartPolicy: Always
-
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -438,28 +473,31 @@ metadata:
   name: store
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      app: store
   template:
     metadata:
+      labels:
+        app: store
     spec:
       containers:
-        - securityContext:
-            - allowPrivilegeEscalation: false
-            - runAsNonRoot: true
-            - capabilities:
-                drop:
-                  - ALL
-        - env:
+        - name: store
+          image: ponytojas/practica_mdaw_store_node:latest
+          ports:
+            - containerPort: 5551
+              protocol: TCP
+          env:
             - name: DB_SERVICE_URL
               value: http://db:5555
             - name: DEBUG
               value: "false"
             - name: HTTP_PORT
               value: "5551"
-          image: ponytojas/practica_mdaw_store_node:latest
-          name: store
-          ports:
-            - containerPort: 5551
-              hostPort: 5551
-              protocol: TCP
-      hostname: store
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            capabilities:
+              drop:
+                - ALL
       restartPolicy: Always
