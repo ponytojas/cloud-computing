@@ -3,7 +3,11 @@ import { Database } from "./db.js";
 import { logger } from "../utils/logger.js";
 
 export const createUser = async (user) => {
-  const hashedPassword = await bcrypt.hash(user.password, 10);
+  const hashedPassword = await bcrypt.hash(
+    user.password,
+    bcrypt.genSaltSync(10)
+  );
+
   const client = new Database();
   const query = `
     INSERT INTO users (username, email, created_at)
