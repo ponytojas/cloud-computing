@@ -1,34 +1,42 @@
-# Build stage
-FROM node:20-alpine AS build-stage
-WORKDIR /app
-COPY package*.json package-lock.json ./
-RUN npm install --frozen-lockfile --ignore-scripts
+# Use an official Node.js image as the base image
+FROM node:lts-alpine
 
-# Copy only the necessary source files
-COPY vite.config.js .
-COPY index.html .
-COPY src src
-COPY public public
+# Set environment variables
+ENV NPM_CONFIG_PREFIX=/home/node/.npm-global
+ENV PATH=$PATH:/home/node/.npm-global/bin
 
-RUN npm run build
+# Install pnpm globally
+RUN npm i -g pnpm
 
-# Production stage
-FROM nginx:stable-alpine AS production-stage
+# Install curl
+RUN apk add --no-cache curl
 
-# Create a non-root user and switch to it
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+# Create and set the working directory
+WORKDIR /home/node/app
 
-WORKDIR /usr/share/nginx/html
-# Clear any existing files in the directory
-RUN rm -rf ./*
-# Copy only the necessary build files from the previous stage
-COPY --from=build-stage /app/dist .
+# Copy package.json and package-lock.json (if present) first to leverage Docker cache
+COPY package*.json ./
 
-# Change ownership of the directory and its contents to the non-root user
-RUN chown -R appuser:appgroup /usr/share/nginx/html
+# Install dependencies
+RUN pnpm install
+
+# Copy the rest of the application code
+COPY . .
+
+# Remove .env and rename .env.prod to .env
+RUN rm -f .env && mv .env.prod .env
+
+# Build the application
+RUN pnpm build
+
+# Change ownership of the application files
+RUN chown -R node:node /home/node/app
 
 # Switch to non-root user
-USER appuser
+USER node
 
-# Start Nginx and make sure it doesn't run as a daemon
-ENTRYPOINT ["nginx", "-g", "daemon off;"]
+# Specify the command to run the application
+CMD ["pnpm", "preview", "--host", "0.0.0.0", "--port", "5555"]
+
+# Expose the application port
+EXPOSE 5555

@@ -15,16 +15,24 @@ increment_version() {
     fi
 }
 
+# Check for the -b or --only_build argument
+ONLY_BUILD=false
+for arg in "$@"; do
+    case $arg in
+        -b|--only_build)
+        ONLY_BUILD=true
+        shift # Remove argument from processing
+        ;;
+    esac
+done
+
 cd DB
 echo "Building image for Postgres"
 docker build -t "ponytojas/practica_mdaw_postgres:latest" .
-docker push "ponytojas/practica_mdaw_postgres:latest"
 
-cd ../traefik
-echo "Building image for Traefik"
-docker build -t "ponytojas/practica_mdaw_traefik:latest" .
-docker push "ponytojas/practica_mdaw_traefik:latest"
-
+if [ "$ONLY_BUILD" = false ]; then
+    docker push "ponytojas/practica_mdaw_postgres:latest"
+fi
 
 cd ../../services
 
@@ -50,18 +58,21 @@ for dir in */ ; do
         echo "Building image for $dir_name with version $new_version"
 
         docker build -t "ponytojas/practica_mdaw_${dir_name}:${new_version}" "$dir"
-	    docker build -t "ponytojas/practica_mdaw_${dir_name}:latest" "$dir"
-        docker push "ponytojas/practica_mdaw_${dir_name}:${new_version}"
-	    docker push "ponytojas/practica_mdaw_${dir_name}:latest"
+        docker build -t "ponytojas/practica_mdaw_${dir_name}:latest" "$dir"
+
+        if [ "$ONLY_BUILD" = false ]; then
+            docker push "ponytojas/practica_mdaw_${dir_name}:${new_version}"
+            docker push "ponytojas/practica_mdaw_${dir_name}:latest"
+        fi
 
         echo "$new_version" > "$version_file"
     fi
 done
 
-cd ../frontend
+cd ../react_front
 
 if [ $? -ne 0 ]; then
-    echo "Error: Cant find path: ../frontend."
+    echo "Error: Cant find path: ../react_front."
     exit 1
 fi
 
@@ -75,11 +86,14 @@ fi
 new_version=$(increment_version "$current_version")
 
 # Añadir impresión para depuración
-echo "Building image for nuxt-app with version $new_version"
+echo "Building image for frontend with version $new_version"
 
-docker build -t "ponytojas/practica_mdaw_nuxt-app:${new_version}" .
-docker build -t "ponytojas/practica_mdaw_nuxt-app:latest" .
-docker push "ponytojas/practica_mdaw_nuxt-app:${new_version}"
-docker push "ponytojas/practica_mdaw_nuxt-app:latest"
+docker build -t "ponytojas/practica_mdaw_frontend:${new_version}" .
+docker build -t "ponytojas/practica_mdaw_frontend:latest" .
+
+if [ "$ONLY_BUILD" = false ]; then
+    docker push "ponytojas/practica_mdaw_frontend:${new_version}"
+    docker push "ponytojas/practica_mdaw_frontend:latest"
+fi
 
 echo "$new_version" > "$version_file"

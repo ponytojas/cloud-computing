@@ -6,7 +6,7 @@ export const handlePay = async (req, res) => {
 
   // Delete the cart from the key `cart-user-userId`
   const cartKey = `cart-user-${userId}`;
-  await client.del(cartKey);
+  await client._del(cartKey);
 
   res.status(200).json({ message: "Payment successful" });
 };
@@ -17,7 +17,7 @@ export const handleTotal = async (req, res) => {
 
   // Get the cart from the key `cart-user-userId`
   const cartKey = `cart-user-${userId}`;
-  const cart = JSON.parse(await client.get(cartKey));
+  const cart = JSON.parse(await client._get(cartKey));
 
   if (!cart) {
     return res.status(200).json({});

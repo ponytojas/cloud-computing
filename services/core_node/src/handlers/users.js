@@ -1,15 +1,14 @@
+import axios from "axios";
 import { logger } from "../utils/logger.js";
 
 export const registerHandler = async (req, res) => {
+  console.log("Register request:", req.body);
   try {
-    const result = await fetch(process.env.AUTH_SERVICE_URL + "/register", {
-      method: "POST",
-      body: JSON.stringify(req.body),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-    const body = await result.json();
+    const result = await axios.post(
+      process.env.AUTH_SERVICE_URL + "/register",
+      req.body
+    );
+    const body = await result.data;
     if (body.error) {
       res.status(400).json(body);
     } else {
@@ -23,14 +22,11 @@ export const registerHandler = async (req, res) => {
 
 export const loginUserHandler = async (req, res) => {
   try {
-    const result = await fetch(process.env.AUTH_SERVICE_URL + "/login", {
-      method: "POST",
-      body: JSON.stringify(req.body),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-    const body = await result.json();
+    const result = await axios.post(
+      process.env.AUTH_SERVICE_URL + "/login",
+      req.body
+    );
+    const body = await result.data;
     logger.debug("Login response:", body);
     if (body.error) {
       res.status(400).json(body);
@@ -45,14 +41,11 @@ export const loginUserHandler = async (req, res) => {
 
 export const logoutUserHandler = async (req, res) => {
   try {
-    const result = await fetch(process.env.AUTH_SERVICE_URL + "/logout", {
-      method: "POST",
-      body: JSON.stringify(req.body),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-    const body = await result.json();
+    const result = await axios.post(
+      process.env.AUTH_SERVICE_URL + "/logout",
+      req.body
+    );
+    const body = await result.data;
     if (body.error) {
       res.status(400).json(body);
     } else {

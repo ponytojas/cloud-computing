@@ -34,11 +34,13 @@ export const loginUser = async (_username, password) => {
   `;
   const values = [_username];
   const result = await client.query(query, values);
-  logger.info(`Getted user: ${result.rows[0]}`);
+  logger.info(`Getted user: ${JSON.stringify(result.rows[0])}`);
   const { user_id, password_hash, username, email } = result.rows[0];
   const isPasswordCorrect = await bcrypt.compare(password, password_hash);
   if (!isPasswordCorrect) {
     throw new Error("Incorrect password");
   }
-  return { userId: user_id, username, email };
+  const returnObj = { userId: user_id, username, email };
+  logger.info(`Logged in user: ${JSON.stringify(returnObj)}`);
+  return returnObj;
 };

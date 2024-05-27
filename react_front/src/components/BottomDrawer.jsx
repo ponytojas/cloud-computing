@@ -39,7 +39,9 @@ export const BottomDrawer = ({ open, toggleDrawer }) => {
       <Box sx={{ height: "300px" }}>
         <Drawer
           open={open}
-          onClose={toggleDrawer(false)}
+          onClose={() => {
+            toggleDrawer();
+          }}
           anchor={"bottom"}
           sx={{ minHeight: "300px" }}
         >

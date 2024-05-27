@@ -1,18 +1,19 @@
 import { createToken, deleteToken } from "../token/token.js";
 import { logger } from "../utils/logger.js";
 
+import dotenv from "dotenv";
+import axios from "axios";
+dotenv.config();
+
 export const registerHandler = async (req, res) => {
-  // try make request to process.env.DB_SERVICE_URL + "/users/create" with req.body and return the response
   try {
     const user = req.body;
-    const result = await fetch(process.env.DB_SERVICE_URL + "/users/create", {
-      method: "POST",
-      body: JSON.stringify(user),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-    const body = await result.json();
+    console.log("Register request:", JSON.stringify(user));
+    const result = await axios.post(
+      process.env.DB_SERVICE_URL + "/users/create",
+      user
+    );
+    const body = await result.data;
     logger.debug(`User registered with ID: ${body.userId}`);
     res.status(201).json(body);
   } catch (error) {
@@ -24,19 +25,18 @@ export const registerHandler = async (req, res) => {
 export const loginUserHandler = async (req, res) => {
   const user = req.body;
   try {
-    const result = await fetch(process.env.DB_SERVICE_URL + "/users/login", {
-      method: "POST",
-      body: JSON.stringify(user),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-    const body = await result.json();
+    const result = await axios.post(
+      process.env.DB_SERVICE_URL + "/users/login",
+      user
+    );
+    const body = await result.data;
+    console.log("Login response:", JSON.stringify(body));
     if (body.error) {
       res.status(401).json(body);
     } else {
       const token = await createToken(body.user);
-      res.status(200).json({
+      console.log(`User logged in: ${body.user.username}`);
+      const resultObj = {
         status: "OK",
         token,
         user: {
@@ -44,10 +44,12 @@ export const loginUserHandler = async (req, res) => {
           username: body.user.username,
           email: body.user.email,
         },
-      });
+      };
+      console.log("Login response:", resultObj);
+      res.status(200).json(resultObj);
     }
   } catch (error) {
-    console.error("Error logging in user:", error);
+    console.log("Error logging in user:", error);
     res.status(500).send("ERROR 1002");
   }
 };

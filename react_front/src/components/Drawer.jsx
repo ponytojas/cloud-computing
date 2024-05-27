@@ -37,7 +37,7 @@ export const LoginDrawer = ({ open, toggleDrawer }) => {
         setUserId(response.user.userId);
         setLoading(false);
         toast.success("Login successful");
-        toggleDrawer(false)();
+        toggleDrawer();
       } else {
         setLoading(false);
         toast.error("Invalid credentials");
@@ -64,6 +64,7 @@ export const LoginDrawer = ({ open, toggleDrawer }) => {
           </Typography>
           <form onSubmit={handleLogin}>
             <TextField
+              id="username"
               label="Username"
               variant="outlined"
               fullWidth
@@ -72,6 +73,7 @@ export const LoginDrawer = ({ open, toggleDrawer }) => {
               required
             />
             <TextField
+              id="password"
               label="Password"
               type="password"
               variant="outlined"
@@ -81,6 +83,7 @@ export const LoginDrawer = ({ open, toggleDrawer }) => {
               required
             />
             <LoadingButton
+              id="sendLogin"
               onClick={handleLogin}
               endIcon={<SendIcon />}
               loading={loading}
@@ -108,7 +111,7 @@ export const LoginDrawer = ({ open, toggleDrawer }) => {
 
   return (
     <div>
-      <Drawer open={open} onClose={toggleDrawer(false)} anchor={"right"}>
+      <Drawer open={open} onClose={toggleDrawer} anchor={"right"}>
         {DrawerList}
       </Drawer>
     </div>

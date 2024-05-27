@@ -6,6 +6,7 @@ import listEndpoints from "express-list-endpoints";
 import { logger } from "./src/utils/logger.js";
 import { checkToken } from "./src/middlewares/token.js";
 import { handlePay, handleTotal } from "./src/handlers/pay.js";
+import { redisClient } from "./src/utils/redis.js";
 
 dotenv.config();
 
@@ -49,6 +50,7 @@ function gracefulShutdown() {
 
   // Stop accepting new connections
   server.close(() => {
+    redisClient.disconnect();
     logger.info("Server closed. No longer accepting new connections.");
     logger.info("Graceful shutdown complete. Exiting.");
     process.exit(0);

@@ -2,7 +2,6 @@ import express, { Router } from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import listEndpoints from "express-list-endpoints";
-
 import { logger } from "./src/utils/logger.js";
 import { getUsersRoute } from "./src/routes/users.js";
 import { getProductsRoute } from "./src/routes/products.js";
@@ -16,9 +15,8 @@ app.use(cors());
 app.use(express.json());
 
 app.use((req, res, next) => {
-  logger.debug(
-    `[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`
-  );
+  console.log("Headers:", JSON.stringify(req.headers));
+  console.log("Body:", JSON.stringify(req.body));
   next();
 });
 

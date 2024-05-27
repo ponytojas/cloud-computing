@@ -87,7 +87,7 @@ ProductCard.propTypes = {
     product_id: PropTypes.number,
     name: PropTypes.string,
     description: PropTypes.string,
-    pricing: PropTypes.number,
+    pricing: PropTypes.string,
     quantity: PropTypes.number,
   }),
 };

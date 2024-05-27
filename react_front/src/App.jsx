@@ -15,9 +15,9 @@ export const App = () => {
   const cart = useStore((state) => state.cart);
   const token = useStore((state) => state.token);
 
-  const toggleDrawer = () => {
+  const toggleDrawer = useCallback(() => {
     setOpen((prev) => !prev);
-  };
+  }, [open]);
 
   const toggleBottomDrawer = useCallback(() => {
     setOpenCart((prev) => !prev);
@@ -55,7 +55,9 @@ export const App = () => {
               }}
               variant="contained"
               startIcon={<ShoppingCartIcon sx={{ mr: 1 }} />}
-              onClick={toggleBottomDrawer}
+              onClick={() => {
+                toggleBottomDrawer();
+              }}
             >
               {`Cart (${items})`}
             </Button>
@@ -86,7 +88,7 @@ export const App = () => {
           <Typography variant="h2" sx={{ fontWeight: 100 }}>
             Products
           </Typography>
-          <IconButton aria-label="delete" onClick={toggleDrawer}>
+          <IconButton aria-label="openLogin" onClick={toggleDrawer}>
             <MenuIcon />
           </IconButton>
         </Box>

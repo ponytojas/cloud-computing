@@ -10,6 +10,7 @@ import {
 } from "./src/handlers/users.js";
 import { logger } from "./src/utils/logger.js";
 import { checkToken } from "./src/token/token.js";
+import { redisClient } from "./src/token/redis.js";
 
 dotenv.config();
 
@@ -20,6 +21,12 @@ app.use(cors());
 
 app.use(express.json());
 
+app.use((req, res, next) => {
+  console.log("Headers:", JSON.stringify(req.headers));
+  console.log("Body:", JSON.stringify(req.body));
+  next();
+});
+
 app.get("/auth/health", (req, res) => {
   res.status(200).send("OK");
 });
@@ -29,6 +36,7 @@ app.post("/login", loginUserHandler);
 app.post("/logout", logoutUserHandler);
 app.post("/check", async (req, res) => {
   const { token } = req.body;
+  console.log("Token:", token);
   if (token) {
     const result = await checkToken(token);
     if (result) {
@@ -54,6 +62,7 @@ function gracefulShutdown() {
 
   // Stop accepting new connections
   server.close(() => {
+    redisClient.disconnect();
     logger.info("Server closed. No longer accepting new connections.");
     logger.info("Graceful shutdown complete. Exiting.");
     process.exit(0);

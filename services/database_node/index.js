@@ -21,6 +21,12 @@ app.use(cors());
 
 app.use(express.json());
 
+app.use((req, res, next) => {
+  console.log("Headers:", JSON.stringify(req.headers));
+  console.log("Body:", JSON.stringify(req.body));
+  next();
+});
+
 app.get("/database/health", (req, res) => {
   res.status(200).send("OK");
 });

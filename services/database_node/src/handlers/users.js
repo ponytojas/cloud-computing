@@ -16,13 +16,14 @@ export const createUserHandler = async (req, res) => {
 
 export const loginUserHandler = async (req, res) => {
   try {
+    logger.info("BODY: " + JSON.stringify(req.body));
     const username = getValueCaseInsensitive(req.body, "username");
     const password = getValueCaseInsensitive(req.body, "password");
     logger.info(
       `User ${username} is trying to log in with password ${password}`
     );
     const authCheck = await loginUser(username, password);
-    logger.debug(`User logged in with ID: ${authCheck.userId}`);
+    logger.info(`User logged :: ${JSON.stringify(authCheck)}`);
     res.status(200).json({ user: authCheck });
   } catch (error) {
     console.error("Error logging in user:", error);
