@@ -22,21 +22,23 @@ export const createToken = async ({ userId, username, email }) => {
     .setIssuedAt()
     .setExpirationTime("24h")
     .sign(secret);
-  await redisClient._set(userId, token);
+  await redisClient._set(userId, `${token}`, "EX", 86400);
   return token;
 };
 
 export const checkToken = async (token) => {
   const redisClient = new Redis();
+  // Check if token includes Bearer, if so, remove it
+  const _token = token.includes("Bearer") ? token.split(" ")[1] : token;
   try {
-    const { payload } = await jose.jwtVerify(token, secret);
+    const { payload } = await jose.jwtVerify(_token, secret);
     if (payload.exp < Date.now() / 1000) {
       logger.debug("Token expired");
       return null;
     }
     console.log("Payload:", payload);
     const cachedToken = await redisClient._get(payload.userId);
-    if (cachedToken !== token) {
+    if (cachedToken !== _token) {
       logger.debug("Token not found in cache");
       return null;
     }

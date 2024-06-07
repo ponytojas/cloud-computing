@@ -24,7 +24,7 @@ spec:
           command: ["sh", "-c", "sleep 2"] # Wait for redis to be ready
       containers:
         - name: payment
-          image: ponytojas/practica_mdaw_payment:latest
+          image: ponytojas/practica_mdaw_payment_node:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 5570

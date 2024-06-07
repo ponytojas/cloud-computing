@@ -3,12 +3,16 @@ import { logger } from "../utils/logger.js";
 
 export const checkToken = async (req, res, next) => {
   try {
-    const { authorization } = req?.headers || null;
-    if (!authorization)
+    const headers = req?.headers || null;
+    if (!headers) {
+      return res.status(401).json({ error: "Unauthorized - Not header found" });
+    }
+    const auth = headers.authorization || headers.Authorization || null;
+    if (!auth)
       return res.status(401).json({ error: "Unauthorized - Not header found" });
 
     const result = await axios.post(process.env.AUTH_SERVICE_URL + "/check", {
-      token: authorization,
+      token: auth,
     });
 
     if (result.status !== 200) {

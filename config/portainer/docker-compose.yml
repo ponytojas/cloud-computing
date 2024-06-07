@@ -3,8 +3,8 @@ services:
   nginx:
       image: ponytojas/practica_mdaw_nginx:latest
       ports:
-        - "8080:80"
-        - "8443:443"
+        - "80:80"
+        - "443:443"
       depends_on:
         - postgres
         - redis
@@ -168,7 +168,7 @@ services:
     depends_on:
       - core
     ports:
-      - "8800:80"
+      - "8800:5555"
     networks:
       - internal
 

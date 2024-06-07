@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: postgres-v1
+  name: postgres
   labels:
     app: postgres
     version: v1

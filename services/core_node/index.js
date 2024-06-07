@@ -15,8 +15,11 @@ app.use(cors());
 app.use(express.json());
 
 app.use((req, res, next) => {
+  console.log("URL:", req.url);
+  console.log("Method:", req.method);
   console.log("Headers:", JSON.stringify(req.headers));
   console.log("Body:", JSON.stringify(req.body));
+  console.log("\n\n");
   next();
 });
 
