@@ -29,8 +29,6 @@ services:
       options:
         max-size: 10m
         max-file: "3"
-    ports:
-      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
@@ -40,8 +38,6 @@ services:
     hostname: redis
     image: redis:7.2.4-alpine3.19
     restart: always
-    ports:
-      - "6379:6379"
     networks:
       - internal
 
@@ -59,8 +55,6 @@ services:
       - DEBUG=false
     networks:
       - internal
-    ports:
-      - "5555:5555"
     depends_on:
       - postgres
       - redis
@@ -77,8 +71,6 @@ services:
       - DEBUG=false
     networks:
       - internal
-    ports:
-      - "5554:5554"
     depends_on:
       - db
       - redis
@@ -93,8 +85,6 @@ services:
       - DEBUG=false
     networks:
       - internal
-    ports:
-      - "5551:5551"
     depends_on:
       - db
       - redis
@@ -112,8 +102,6 @@ services:
       - DEBUG=false
     networks:
       - internal
-    ports:
-      - "5560:5560"
     depends_on:
       - db
       - redis
@@ -129,8 +117,6 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - DEBUG=false
-    ports:
-      - "5570:5570"
     networks:
       - internal
     depends_on:
@@ -150,8 +136,6 @@ services:
       - DEBUG=false
     networks:
       - internal
-    ports:
-      - "5550:5550"
     depends_on:
       - db
       - redis
@@ -167,8 +151,6 @@ services:
       - VITE_PAYMENT_BASE=https://localhost/payment
     depends_on:
       - core
-    ports:
-      - "8800:5555"
     networks:
       - internal
 
