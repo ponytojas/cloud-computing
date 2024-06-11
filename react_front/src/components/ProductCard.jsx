@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
+import Rating from "@mui/material/Rating";
 import { Button } from "@mui/material";
 import { toast } from "react-toastify";
 import { useStore } from "../store";
@@ -62,12 +63,35 @@ export const ProductCard = ({ product }) => {
         border: "1px solid #ccc",
         minWidth: "250px",
         borderRadius: 1,
+        padding: 4,
       }}
     >
+      {product.picture && (
+        <Box
+          sx={{
+            display: "flex",
+            marginTop: 2,
+            marginBottom: 2,
+            width: "100%",
+            justifyContent: "center",
+            alignContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <img
+            src="https://ugmonk.com/cdn/shop/files/new-magsafe-white-maple-2_1480x1836_crop_center.jpg?v=1714765834"
+            alt={product.name}
+            style={{ width: "128px", margin: "0 auto" }}
+          />
+        </Box>
+      )}
       <Typography variant="h6">{product.name}</Typography>
       <Typography>{product.description}</Typography>
       <Typography>${product.pricing}</Typography>
       <Typography>Stock: {product.quantity}</Typography>
+      {product.rating && (
+        <Rating name="read-only" value={product.rating} readOnly />
+      )}
       {token && (
         <Button
           variant="contained"

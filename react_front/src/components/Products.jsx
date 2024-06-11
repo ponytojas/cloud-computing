@@ -1,9 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
 import Box from "@mui/material/Box";
 import { ProductCard } from "./ProductCard";
+import { useStore } from "../store";
 
 export const Products = () => {
-  const [products, setProducts] = useState([]);
+  const products = useStore((state) => state.products);
+  const setProducts = useStore((state) => state.setProducts);
   const fetchedRef = useRef(false);
 
   useEffect(() => {
@@ -25,6 +27,9 @@ export const Products = () => {
         display: "flex",
         flexDirection: "row",
         flexWrap: "wrap",
+        alignContent: "center",
+        justifyContent: "center",
+        alignItems: "center",
       }}
     >
       {products.map((product) => (
