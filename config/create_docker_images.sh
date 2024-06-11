@@ -76,6 +76,8 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+rm -rf node_modules
+
 version_file="version"
 if [ -f "$version_file" ]; then
     current_version=$(tr -d '\n' < "$version_file")
