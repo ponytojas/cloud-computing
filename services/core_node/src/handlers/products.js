@@ -1,3 +1,4 @@
+import { adaptResponse } from "../utils/body.js";
 import { logger } from "../utils/logger.js";
 
 export const createProductHandler = async (req, res) => {
@@ -27,6 +28,7 @@ export const getProductsHandler = async (req, res) => {
   try {
     const result = await fetch(process.env.STORE_SERVICE_URL + "/product");
     const body = await result.json();
+    const _body = adaptResponse(body);
     if (!result.ok) {
       logger.error("Error getting products:", body);
       return res.status(500).send("ERROR 1003");
