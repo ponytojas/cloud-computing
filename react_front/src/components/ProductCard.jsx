@@ -79,7 +79,7 @@ export const ProductCard = ({ product }) => {
           }}
         >
           <img
-            src="https://ugmonk.com/cdn/shop/files/new-magsafe-white-maple-2_1480x1836_crop_center.jpg?v=1714765834"
+            src={product.picture}
             alt={product.name}
             style={{ width: "128px", margin: "0 auto" }}
           />
