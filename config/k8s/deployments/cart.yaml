@@ -41,10 +41,48 @@ spec:
               value: "6379"
             - name: STORE_SERVICE_URL
               value: http://store:5551
-          resources:
-            requests:
-              memory: "128Mi"
-              cpu: "250m"
-            limits:
-              memory: "256Mi"
-              cpu: "500m"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cart-v2
+  labels:
+    app: cart
+    version: v2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cart
+      version: v2
+  template:
+    metadata:
+      labels:
+        app: cart
+        version: v2
+    spec:
+      serviceAccountName: mdaw
+      initContainers:
+        - name: init-auth
+          image: busybox:1.28
+          command: ["sh", "-c", "sleep 2"] # Wait for redis to be ready
+      containers:
+        - name: cart
+          image: ponytojas/practica_mdaw_cart_node_v2:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5560
+          env:
+            - name: AUTH_SERVICE_URL
+              value: http://auth:5554
+            - name: DEBUG
+              value: "false"
+            - name: HTTP_PORT
+              value: "5560"
+            - name: REDIS_HOST
+              value: redis
+            - name: REDIS_PORT
+              value: "6379"
+            - name: STORE_SERVICE_URL
+              value: http://store:5551

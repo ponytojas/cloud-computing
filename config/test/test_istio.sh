@@ -32,6 +32,15 @@ PAYMENT_TOTAL_URL='http://localhost/payment/v1/total/1'
 TOKEN_FILE="token.txt"
 > $TOKEN_FILE # Create or clear the token file
 
+# Array of image URLs
+IMAGE_URLS=("https://cdn.shopify.com/s/files/1/0746/7391/4132/files/LightIII-Float-ProductSite_1600x.png?v=1718070454" "https://www.nobullproject.com/cdn/shop/products/dd436e6d31839fdd4e9d827ecf83acc84abc2d79_1cd8725e-8adb-400c-89d6-6c2bedfaf546.jpg?v=1688016515" "https://bureau.ams3.digitaloceanspaces.com/goods/prod/uploads/store/59d7645003a61d648a4bd6b8d76ceff4.png")
+
+# Check if IMAGE_URLS array is not empty
+if [ ${#IMAGE_URLS[@]} -eq 0 ]; then
+  echo 'Error: IMAGE_URLS array is empty. Please add URLs to the IMAGE_URLS array.' >&2
+  exit 1
+fi
+
 register_and_process_user() {
   i=$1
   REGISTER_URL=$2
@@ -80,6 +89,10 @@ register_and_process_user() {
       fi
 
       price=$(( ( RANDOM % 200 )  + 1 ))
+      rating=$(( ( RANDOM % 5 )  + 1 ))
+
+      # Select a random image URL
+      image_url=${IMAGE_URLS[$RANDOM % ${#IMAGE_URLS[@]}]}
 
       # Create a product
       product_response=$(curl --silent --write-out "HTTPSTATUS:%{http_code}" --location $PRODUCT_URL \
@@ -88,7 +101,9 @@ register_and_process_user() {
       --data-raw "{
         \"name\": \"Producto $i\",
         \"pricing\": $price,
-        \"description\": \"test\"
+        \"description\": \"test\",
+        \"rating\": $rating,
+        \"imageUrl\": \"$image_url\"
       }")
 
       # Extract the product creation status
@@ -155,8 +170,7 @@ add_to_cart_and_check_total() {
   }")
 
   # Extract the add to cart status
-  add_to_cart_status=$(echo $add_to_cart_response | tr -d '\n' | sed -e 's/.*HTTPSTATUS://')
-
+  add_to_cart_status=$(echo $add_to_cart_response | tr -d '\n' | sed -e 's/.*HTTPSTATUS://') 
   if [ $add_to_cart_status -eq 200 ] || [ $add_to_cart_status -eq 201 ]; then
     echo "Add to cart $i: OK"
   else

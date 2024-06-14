@@ -33,10 +33,40 @@ spec:
               value: "5550"
             - name: STORE_SERVICE_URL
               value: http://store:5551
-          resources:
-            requests:
-              memory: "128Mi"
-              cpu: "250m"
-            limits:
-              memory: "256Mi"
-              cpu: "500m"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: core-v2
+  labels:
+    app: core
+    version: v2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: core
+      version: v2
+  template:
+    metadata:
+      labels:
+        app: core
+        version: v2
+    spec:
+      serviceAccountName: mdaw
+      containers:
+        - name: core
+          image: ponytojas/practica_mdaw_core_node_v2:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5550
+          env:
+            - name: AUTH_SERVICE_URL
+              value: http://auth:5554
+            - name: DEBUG
+              value: "false"
+            - name: HTTP_PORT
+              value: "5550"
+            - name: STORE_SERVICE_URL
+              value: http://store:5551

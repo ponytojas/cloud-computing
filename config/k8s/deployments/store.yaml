@@ -31,10 +31,38 @@ spec:
               value: "false"
             - name: HTTP_PORT
               value: "5551"
-          resources:
-            requests:
-              memory: "128Mi"
-              cpu: "250m"
-            limits:
-              memory: "256Mi"
-              cpu: "500m"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: store-v2
+  labels:
+    app: store
+    version: v2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: store
+      version: v2
+  template:
+    metadata:
+      labels:
+        app: store
+        version: v2
+    spec:
+      serviceAccountName: mdaw
+      containers:
+        - name: store
+          image: ponytojas/practica_mdaw_store_node_v2:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5551
+          env:
+            - name: DB_SERVICE_URL
+              value: http://db:5555
+            - name: DEBUG
+              value: "false"
+            - name: HTTP_PORT
+              value: "5551"

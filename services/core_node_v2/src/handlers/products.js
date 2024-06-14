@@ -1,16 +1,13 @@
-import { adaptBody, adaptResponse } from "../utils/body.js";
+import { adaptResponse } from "../utils/body.js";
 import { logger } from "../utils/logger.js";
 
 export const createProductHandler = async (req, res) => {
   if (!req.body) return res.status(500).json({ error: "Missing request body" });
 
-  const _body = adaptBody(req.body);
-  if (!_body) return res.status(500).json({ error: "Missing required fields" });
-
   try {
     const result = await fetch(process.env.STORE_SERVICE_URL + "/product", {
       method: "POST",
-      body: JSON.stringify(_body),
+      body: JSON.stringify(req.body),
       headers: {
         "Content-Type": "application/json",
       },
@@ -36,7 +33,7 @@ export const getProductsHandler = async (req, res) => {
       logger.error("Error getting products:", body);
       return res.status(500).send("ERROR 1003");
     }
-    return res.status(200).json(body);
+    return res.status(200).json(_body);
   } catch (error) {
     logger.error("Error getting products:", error);
     return res.status(500).send("ERROR 1003");

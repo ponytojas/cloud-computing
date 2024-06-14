@@ -4,6 +4,8 @@ const RES_KEYS = [
   "description",
   "product_id",
   "product_stock_id",
+  "rating",
+  "picture",
   "quantity",
 ];
 
@@ -15,9 +17,5 @@ export const adaptResponse = (body) => {
     }
   });
 
-  // Check if _body has all the required keys
-  if (Object.keys(_body).length !== RES_KEYS.length) {
-    return null;
-  }
   return _body;
 };

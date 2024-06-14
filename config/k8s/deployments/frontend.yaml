@@ -21,7 +21,7 @@ spec:
       containers:
         - name: frontend
           image: ponytojas/practica_mdaw_frontend:latest
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 5555
           env:
