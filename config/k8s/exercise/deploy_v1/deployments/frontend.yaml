@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-v1
+  labels:
+    app: frontend
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: frontend
+        version: v1
+    spec:
+      serviceAccountName: mdaw
+      containers:
+        - name: frontend
+          image: ponytojas/practica_mdaw_frontend:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5555
+          env:
+            - name: CART_BASE
+              value: http://cart:5560
+            - name: CORE_BASE
+              value: http://core:5550
+            - name: PAYMENT_BASE
+              value: http://payment:5570

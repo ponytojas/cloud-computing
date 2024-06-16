@@ -14,9 +14,17 @@ export const createProductHandler = async (req, res) => {
   const name = getValueCaseInsensitive(req.body, "name");
   const pricing = getValueCaseInsensitive(req.body, "pricing");
   const description = getValueCaseInsensitive(req.body, "description");
+  const rating = getValueCaseInsensitive(req.body, "rating");
+  const picture = getValueCaseInsensitive(req.body, "picture");
   logger.debug(`Product ${name} to be inserted`);
   try {
-    const result = await createProduct(name, pricing, description);
+    const result = await createProduct(
+      name,
+      pricing,
+      description,
+      rating,
+      picture
+    );
     return res.status(200).json({ productId: result });
   } catch (e) {
     logger.error(e);
@@ -64,7 +72,7 @@ export const getAllProductStockHandler = async (req, res) => {
   logger.debug("Getting all product stock");
   try {
     const result = await getAllProductStock();
-    return res.status(200).json(result);
+    return res.status(200).json({ data: result });
   } catch (e) {
     logger.error(e);
     return res.status(500).json({ Error: "Error getting product stock" });

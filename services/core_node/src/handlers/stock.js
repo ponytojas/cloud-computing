@@ -1,9 +1,12 @@
+import { adaptBody } from "../utils/body.js";
 import { logger } from "../utils/logger.js";
 
 export const getStockHandler = async (req, res) => {
   try {
     const result = await fetch(process.env.STORE_SERVICE_URL + "/stock");
-    const body = await result.json();
+    const inputBody = await result.json();
+    const _body = adaptBody(inputBody.data);
+    const body = { ...inputBody, data: _body };
     if (!result.ok) {
       logger.error("Error getting products:", body);
       return res.status(500).send("ERROR 1003");

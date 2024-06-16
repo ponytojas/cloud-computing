@@ -8,19 +8,22 @@ const RES_KEYS = [
   "quantity",
 ];
 
-export const adaptBody = (body) => {
-  const _body = {};
-  KEYS.forEach((key) => {
-    if (body[key]) {
-      _body[key] = body[key];
-    }
-  });
+export const adaptBody = (data) => {
+  const newData = data.map((d) => {
+    const _body = {};
+    RES_KEYS.forEach((key) => {
+      if (d[key]) {
+        _body[key] = d[key];
+      }
+    });
 
-  // Check if _body has all the required keys
-  if (Object.keys(_body).length !== KEYS.length) {
-    return null;
-  }
-  return _body;
+    // Check if _body has all the required keys
+    if (Object.keys(_body).length !== RES_KEYS.length) {
+      return null;
+    }
+    return _body;
+  });
+  return newData;
 };
 
 export const adaptResponse = (body) => {

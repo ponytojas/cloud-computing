@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-v2
+  labels:
+    app: auth
+    version: v2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth
+      version: v2
+  template:
+    metadata:
+      labels:
+        app: auth
+        version: v2
+    spec:
+      serviceAccountName: mdaw
+      initContainers:
+        - name: init-auth
+          image: busybox:1.28
+          command: ["sh", "-c", "sleep 2"] # Wait for redis to be ready
+      containers:
+        - name: auth
+          image: ponytojas/practica_mdaw_auth_node_v2:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5554
+          env:
+            - name: DB_SERVICE_URL
+              value: http://db:5555
+            - name: DEBUG
+              value: "false"
+            - name: HTTP_PORT
+              value: "5554"
+            - name: JWT_SECRET
+              value: JunoMolaAsiQueMasPlachanito
+            - name: REDIS_HOST
+              value: redis
+            - name: REDIS_PORT
+              value: "6379"

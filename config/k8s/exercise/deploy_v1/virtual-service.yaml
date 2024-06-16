@@ -1,0 +1,54 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: mdaw-virtual-service
+spec:
+  hosts:
+    - "*"
+  gateways:
+    - mdaw-gateway
+  http:
+    - match:
+        - uri:
+            exact: /
+        - uri:
+            prefix: /assets
+      route:
+        - destination:
+            host: frontend
+            subset: v1
+            port:
+              number: 5555
+    - match:
+        - uri:
+            prefix: /core/
+      rewrite:
+        uri: /
+      route:
+        - destination:
+            host: core
+            subset: v1
+            port:
+              number: 5550
+    - match:
+        - uri:
+            prefix: /cart/
+      rewrite:
+        uri: /
+      route:
+        - destination:
+            host: cart
+            subset: v1
+            port:
+              number: 5560
+    - match:
+        - uri:
+            prefix: /payment/
+      rewrite:
+        uri: /
+      route:
+        - destination:
+            host: payment
+            subset: v1
+            port:
+              number: 5570

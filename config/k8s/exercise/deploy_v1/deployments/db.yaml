@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: db-v1
+  labels:
+    app: db
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: db
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: db
+        version: v1
+    spec:
+      serviceAccountName: mdaw
+      containers:
+        - name: db
+          image: ponytojas/practica_mdaw_database_node:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5555
+          env:
+            - name: DB_HOST
+              value: postgres.default.svc.cluster.local
+            - name: DB_NAME
+              value: postgres
+            - name: DB_PASS
+              value: mysecretpassword
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_SSLMODE
+              value: disable
+            - name: DB_USER
+              value: postgres
+            - name: DEBUG
+              value: "false"
+            - name: HTTP_PORT
+              value: "5555"

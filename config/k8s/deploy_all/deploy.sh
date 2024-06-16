@@ -1,4 +1,4 @@
-#/bin/bash
+#!/bin/bash
 kubectl apply -n default -f ./volumes/\*.yaml
 kubectl apply -n default -f ./services/\*.yaml
 kubectl apply -n default -f ./servicesAccount/\*.yaml
