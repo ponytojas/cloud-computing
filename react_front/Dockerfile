@@ -1,5 +1,5 @@
 # Use an official Node.js image as the base image
-FROM node:lts-alpine
+FROM node:20.14.0-alpine3.20
 
 # Set environment variables
 ENV NPM_CONFIG_PREFIX=/home/node/.npm-global
