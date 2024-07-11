@@ -1,4 +1,4 @@
-FROM node:20.12.2-alpine3.19
+FROM node:20.15.1-alpine3.19
 RUN apk add --no-cache dumb-init
 ENV NODE_ENV production
 WORKDIR /usr/src/app
