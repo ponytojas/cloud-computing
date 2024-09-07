@@ -1,4 +1,4 @@
-FROM postgres:latest
+FROM postgres:16.4-bookworm
 ENV POSTGRES_USER postgres
 ENV POSTGRES_PASSWORD=mysecretpassword
 ENV POSTGRES_DB postgres
